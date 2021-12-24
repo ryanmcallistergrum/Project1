@@ -9,6 +9,7 @@ libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.4.2"
 libraryDependencies += "com.lihaoyi" %% "ujson" % "1.4.3"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.10"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % "test"
+libraryDependencies += "com.outr" %% "hasher" % "1.2.2"
 
 lazy val root = (project in file("."))
   .settings(
