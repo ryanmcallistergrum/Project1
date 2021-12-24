@@ -4,7 +4,7 @@ import scalaj.http.HttpRequest
 
 class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
   object Test extends GamespotAPI {
-    final val API_CONFIG_FILENAME : String = "Gamespot API Details.txt";
+    final val API_CONFIG_FILENAME : String = "apiDetails.txt";
     def getHeaderFields() : List[String] = headerFields;
     def getArticleFields() : List[String] = articleFields;
     def getArticleFilterFields() : List[String] = articleFilterFields;
