@@ -26,31 +26,31 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def showQuery(query: String): Unit = super.showQuery(query);
     override def saveQuery(user_id: Int, query_name: String, query: String): Unit = super.saveQuery(user_id, query_name, query);
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
-    override def addGame(game_id: Int, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Int, review_count: Int, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
-    override def getGame(game_name: String): (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = super.getGame(game_name);
-    override def addGames(games: List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])]): Unit = super.addGames(games);
-    override def gameExists(game_id: Int, name: String): Boolean = super.gameExists(game_id, name);
-    override def getGame(game_id: Int): (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = super.getGame(game_id);
-    override def getLatestGames(): List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])] = super.getLatestGames();
-    override def updateAvgScore(game_id: Int, newScore: Double): Double = super.updateAvgScore(game_id, newScore);
-    override def updateArticleCount(game_id: Int, newArticleCount: Int): Int = super.updateArticleCount(game_id, newArticleCount);
-    override def updateReviewCount(game_id: Int, newReviewCount: Int): Int = super.updateReviewCount(game_id, newReviewCount);
-    override def deleteGame(game_id: Int): (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = super.deleteGame(game_id);
-    override def deleteGames(game_ids: List[Int]): List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])] = super.deleteGames(game_ids);
-    override def addReview(review_id: Int, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, score: Double, review_type: String, game_id: Int): Unit = super.addReview(review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id);
-    override def addReviews(reviews: List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)]): Unit = super.addReviews(reviews);
-    override def reviewExists(review_id: Int): Boolean = super.reviewExists(review_id);
-    override def getGameReviews(game_id: Int): List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)] = super.getGameReviews(game_id);
+    override def addGame(game_id: Long, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Long, review_count: Long, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
+    override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_name);
+    override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
+    override def gameExists(game_id: Long, name: String): Boolean = super.gameExists(game_id, name);
+    override def getGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id);
+    override def getLatestGames(): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getLatestGames();
+    override def updateAvgScore(game_id: Long, newScore: Double): Double = super.updateAvgScore(game_id, newScore);
+    override def updateArticleCount(game_id: Long, newArticleCount: Long): Long = super.updateArticleCount(game_id, newArticleCount);
+    override def updateReviewCount(game_id: Long, newReviewCount: Long): Long = super.updateReviewCount(game_id, newReviewCount);
+    override def deleteGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.deleteGame(game_id);
+    override def deleteGames(game_ids: List[Long]): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.deleteGames(game_ids);
+    override def addReview(review_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, score: Double, review_type: String, game_id: Long): Unit = super.addReview(review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id);
+    override def addReviews(reviews: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]): Unit = super.addReviews(reviews);
+    override def reviewExists(review_id: Long): Boolean = super.reviewExists(review_id);
+    override def getGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.getGameReviews(game_id);
     override def getLatestReviewDate(): LocalDateTime = super.getLatestReviewDate();
-    override def getLatestGameReviewDate(game_id: Int): LocalDateTime = super.getLatestGameReviewDate(game_id);
-    override def deleteGameReviews(game_id: Int): List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)] = super.deleteGameReviews(game_id);
-    override def addArticle(article_id: Int, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, categories: Map[Int, String], game_id: Int): Unit = super.addArticle(article_id, authors, title, deck, lede, body, publish_date, update_date, categories, game_id);
-    override def addArticles(articles: List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)]): Unit = super.addArticles(articles);
-    override def articleExists(article_id: Int): Boolean = super.articleExists(article_id);
-    override def getGameArticles(game_id: Int): List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)] = super.getGameArticles(game_id);
-    override def getLatestGameArticleDate(game_id: Int): LocalDateTime = super.getLatestGameArticleDate(game_id);
+    override def getLatestGameReviewDate(game_id: Long): LocalDateTime = super.getLatestGameReviewDate(game_id);
+    override def deleteGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.deleteGameReviews(game_id);
+    override def addArticle(article_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, categories: Map[Long, String], game_id: Long): Unit = super.addArticle(article_id, authors, title, deck, lede, body, publish_date, update_date, categories, game_id);
+    override def addArticles(articles: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)]): Unit = super.addArticles(articles);
+    override def articleExists(article_id: Long): Boolean = super.articleExists(article_id);
+    override def getGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.getGameArticles(game_id);
+    override def getLatestGameArticleDate(game_id: Long): LocalDateTime = super.getLatestGameArticleDate(game_id);
     override def getLatestArticleDate(): LocalDateTime = super.getLatestArticleDate();
-    override def deleteGameArticles(game_id: Int): List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)] = super.deleteGameArticles(game_id);
+    override def deleteGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.deleteGameArticles(game_id);
   }
 
   "deleteDB()" should "clear the P1 database from Derby (FOR TESTING ONLY!)" in {
@@ -183,13 +183,13 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(true);
   }
 
-  "addGame(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]" should "insert a new game record into the games table if it does not already exist" in {
+  "addGame(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]" should "insert a new game record into the games table if it does not already exist" in {
     Test.addGame(1, "test", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String]("test01", "test02"), List[String]("test03", "test04"));
     assert(Test.gameExists(1, "test"));
   }
 
-  "addGames(List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])])" should "insert new game records into the games table if they do not already exist" in {
-    Test.addGames(List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])](
+  "addGames(List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])])" should "insert new game records into the games table if they do not already exist" in {
+    Test.addGames(List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])](
       (2, "test1", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String](), List[String]()),
       (3, "test2", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String](), List[String]()),
     ));
@@ -197,7 +197,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.gameExists(3, "test2"));
   }
 
-  "gameExists(Int, String)" should "return true when its game_id and name parameters match a game in our datastore" in {
+  "gameExists(Long, String)" should "return true when its game_id and name parameters match a game in our datastore" in {
     assert(Test.gameExists(1, "test"));
   }
 
@@ -206,35 +206,35 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(!Test.gameExists(1, "test1"));
   }
 
-  "getGame(Int)" should "return the game details for the specified game_id, assuming that it exists in our games datastore" in {
-    val result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = Test.getGame(1);
+  "getGame(Long)" should "return the game details for the specified game_id, assuming that it exists in our games datastore" in {
+    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(1);
       assert(result != null);
   }
 
   it should "return null if the game_id does not exist in the games datastore" in {
-    val result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = Test.getGame(-1);
+    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(-1);
     assert(result == null);
   }
 
   "getGame(String)" should "return the game details for the specified game_name, assuming that it exists in our games datastore" in {
-    val result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = Test.getGame("test");
+    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame("test");
     assert(result != null);
   }
 
   it should "return null if the game_id does not exist in the games datastore" in {
-    val result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = Test.getGame("nonexistentgame");
+    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame("nonexistentgame");
     assert(result == null);
   }
 
   "getLatestGames()" should "return the game details with the latest LocalDateTime of games that we have in the database" in {
-    val result : List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])] = Test.getLatestGames();
+    val result : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = Test.getLatestGames();
     if (result.isEmpty)
       assert(result.isEmpty);
     else
       assert(result.nonEmpty);
   }
 
-  "updateAvgScore(Int, Double)" should "update the game with the provided game_id's average score with the provided average score and return its previous value" in {
+  "updateAvgScore(Long, Double)" should "update the game with the provided game_id's average score with the provided average score and return its previous value" in {
     assert(Test.updateAvgScore(1, 3.2) == 0.0);
     assert(Test.updateAvgScore(1, 0.0) == 3.2);
   }
@@ -248,7 +248,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.updateAvgScore(-1, 2.0) == Double.NegativeInfinity);
   }
 
-  "updateArticleCount(Int, Int)" should "update the game with the provided game_id's article count with the provided newArticleCount and return the previous article_count value" in {
+  "updateArticleCount(Long, Long)" should "update the game with the provided game_id's article count with the provided newArticleCount and return the previous article_count value" in {
     assert(Test.updateArticleCount(1, 1) == 0);
     assert(Test.updateArticleCount(1, 0) == 1);
   }
@@ -257,11 +257,11 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.updateArticleCount(1, -1) == 0);
   }
 
-  it should "return the smallest possible Int value if the game_id does not exist" in {
-    assert(Test.updateArticleCount(-1, 2) == Int.MinValue);
+  it should "return the smallest possible Long value if the game_id does not exist" in {
+    assert(Test.updateArticleCount(-1, 2) == Long.MinValue);
   }
 
-  "updateReviewCount(Int, Int)" should "update the game with the provided game_id's review count with the provided newReviewCount and return the previous review_count value" in {
+  "updateReviewCount(Long, Long)" should "update the game with the provided game_id's review count with the provided newReviewCount and return the previous review_count value" in {
     assert(Test.updateReviewCount(1, 1) == 0);
     assert(Test.updateReviewCount(1, 0) == 1);
   }
@@ -270,11 +270,11 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.updateReviewCount(1, -1) == 0);
   }
 
-  it should "return the smallest possible Int value if the game_id does not exist" in {
-    assert(Test.updateReviewCount(-1, 2) == Int.MinValue);
+  it should "return the smallest possible Long value if the game_id does not exist" in {
+    assert(Test.updateReviewCount(-1, 2) == Long.MinValue);
   }
 
-  "deleteGame(Int)" should "return the details of the game that is removed from the datastore" in {
+  "deleteGame(Long)" should "return the details of the game that is removed from the datastore" in {
     assert(Test.deleteGame(3) != null);
     assert(Test.getGame(3) == null);
   }
@@ -283,7 +283,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.deleteGame(3) == null);
   }
 
-  "deleteGames(List[Int])" should "return the game details of the games removed from the datastore" in {
+  "deleteGames(List[Long])" should "return the game details of the games removed from the datastore" in {
     assert(Test.deleteGames(List(1, 2)).nonEmpty);
   }
 
@@ -291,12 +291,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.deleteGames(List(-1, -2 ,-3)).isEmpty);
   }
 
-  "addReview(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)" should "add a new review to the reviews datastore" in {
+  "addReview(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)" should "add a new review to the reviews datastore" in {
     Test.addReview(1, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), 0.0, "primary", 1);
     assert(Test.reviewExists(1));
   }
 
-  "addReviews(List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)])" should "add the passed-in reviews to the reviews datastore" in {
+  "addReviews(List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)])" should "add the passed-in reviews to the reviews datastore" in {
     Test.addReviews(
       List(
         (2, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), 0.0, "secondary", 1),
@@ -307,7 +307,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.reviewExists(3));
   }
 
-  "reviewExists(Int)" should "return true when it finds a review with the given review_id in our reviews datastore" in {
+  "reviewExists(Long)" should "return true when it finds a review with the given review_id in our reviews datastore" in {
     assert(Test.reviewExists(1));
   }
 
@@ -315,8 +315,8 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(!Test.reviewExists(-1));
   }
 
-  "getGameReviews(Int)" should "return a list of reviews for the given game_id, if any exist" in {
-    val results : List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)] = Test.getGameReviews(1);
+  "getGameReviews(Long)" should "return a list of reviews for the given game_id, if any exist" in {
+    val results : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = Test.getGameReviews(1);
     if (results.isEmpty)
       assert(results.isEmpty);
     else
@@ -331,7 +331,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       assert(result == null);
   }
 
-  "getLatestGameReviewDate(Int)" should "return the latest publish_date for a review for the given game_id" in {
+  "getLatestGameReviewDate(Long)" should "return the latest publish_date for a review for the given game_id" in {
     assert(Test.getLatestGameReviewDate(1) != null);
   }
 
@@ -340,7 +340,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getLatestGameReviewDate(2) == null);
   }
 
-  "deleteGameReviews(Int)" should "return a list of all the reviews removed from the reviews datastore for the given game_id" in {
+  "deleteGameReviews(Long)" should "return a list of all the reviews removed from the reviews datastore for the given game_id" in {
     assert(Test.deleteGameReviews(1).nonEmpty);
   }
 
@@ -349,22 +349,22 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.deleteGameReviews(-1).isEmpty);
   }
 
-  "addArticle(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)" should "add a new article to the articles datastore" in {
-    Test.addArticle(1, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), Map((1 -> "test1"), (2 -> "test2")), 1);
+  "addArticle(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)" should "add a new article to the articles datastore" in {
+    Test.addArticle(1, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1);
     assert(Test.articleExists(1));
   }
 
-  "addArticles(List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)])" should "insert the passed-in articles into the articles datastore" in {
+  "addArticles(List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)])" should "insert the passed-in articles into the articles datastore" in {
     Test.addArticles(List(
-      (2, "test1", "test1", "test1", "test1", "test1", LocalDateTime.now(), LocalDateTime.now(), Map((1 -> "test1"), (2 -> "test2")), 1),
-      (3, "test2", "test2", "test2", "test2", "test2", LocalDateTime.now(), LocalDateTime.now(), Map((1 -> "test1"), (2 -> "test2")), 1)
+      (2, "test1", "test1", "test1", "test1", "test1", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1),
+      (3, "test2", "test2", "test2", "test2", "test2", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1)
     )
     );
     assert(Test.articleExists(2));
     assert(Test.articleExists(3));
   }
 
-  "articleExists(Int)" should "return true for an article_id that exist in the articles datastore" in {
+  "articleExists(Long)" should "return true for an article_id that exist in the articles datastore" in {
     assert(Test.articleExists(1));
   }
 
@@ -372,7 +372,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(!Test.articleExists(-1));
   }
 
-  "getGameArticles(Int)" should "return the list of articles associated with the passed-in game_id" in {
+  "getGameArticles(Long)" should "return the list of articles associated with the passed-in game_id" in {
     assert(Test.getGameArticles(1).nonEmpty);
   }
 
@@ -381,7 +381,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getGameArticles(-1).isEmpty);
   }
 
-  "getLatestGameArticleDate(Int)" should "return the latest publish_date for articles for the given game_id" in {
+  "getLatestGameArticleDate(Long)" should "return the latest publish_date for articles for the given game_id" in {
     assert(Test.getLatestGameArticleDate(1) != null);
   }
 
@@ -394,7 +394,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getLatestArticleDate() != null);
   }
 
-  "deleteGameArticles(Int)" should "return a list of removed articles for the specified game_id from the articles datastore" in {
+  "deleteGameArticles(Long)" should "return a list of removed articles for the specified game_id from the articles datastore" in {
     assert(Test.deleteGameArticles(1).nonEmpty);
     assert(Test.getLatestGameArticleDate(1) == null);
   }
