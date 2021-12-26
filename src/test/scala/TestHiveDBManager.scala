@@ -48,6 +48,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def articleExists(article_id: Int): Boolean = super.articleExists(article_id);
     override def getGameArticles(game_id: Int): List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)] = super.getGameArticles(game_id);
     override def getLatestGameArticleDate(game_id: Int): LocalDateTime = super.getLatestGameArticleDate(game_id);
+    override def getLatestArticleDate(): LocalDateTime = super.getLatestArticleDate();
     override def deleteGameArticles(game_id: Int): List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Int, String], Int)] = super.deleteGameArticles(game_id);
   }
 
@@ -378,6 +379,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getLatestGameArticleDate(-1) == null);
   }
 
+  "getLatestArticleDate()" should "return the latest publish_date in the articles datastore" in {
+    assert(Test.getLatestArticleDate() != null);
+  }
+
   "deleteGameArticles(Int)" should "return a list of removed articles for the specified game_id from the articles datastore" in {
     assert(Test.deleteGameArticles(1).nonEmpty);
     assert(Test.getLatestGameArticleDate(1) == null);
@@ -386,5 +391,9 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   it should "return an empty list of articles if the game_id has no articles or the game_id does not exist in the articles datastore" in {
     assert(Test.deleteGameArticles(2).isEmpty);
     assert(Test.deleteGameArticles(-1).isEmpty);
+  }
+
+  "getLatestArticleDate()" should "return null if there are no articles" in {
+    assert(Test.getLatestArticleDate() == null);
   }
 }
