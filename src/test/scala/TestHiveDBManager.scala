@@ -27,6 +27,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def saveQuery(user_id: Int, query_name: String, query: String): Unit = super.saveQuery(user_id, query_name, query);
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
     override def addGame(game_id: Int, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Int, review_count: Int, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
+    override def getGame(game_name: String): (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = super.getGame(game_name);
     override def addGames(games: List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])]): Unit = super.addGames(games);
     override def gameExists(game_id: Int, name: String): Boolean = super.gameExists(game_id, name);
     override def getGame(game_id: Int): (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = super.getGame(game_id);
@@ -215,6 +216,16 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(result == null);
   }
 
+  "getGame(String)" should "return the game details for the specified game_name, assuming that it exists in our games datastore" in {
+    val result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = Test.getGame("test");
+    assert(result != null);
+  }
+
+  it should "return null if the game_id does not exist in the games datastore" in {
+    val result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = Test.getGame("nonexistentgame");
+    assert(result == null);
+  }
+
   "getLatestGames()" should "return the game details with the latest LocalDateTime of games that we have in the database" in {
     val result : List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])] = Test.getLatestGames();
     if (result.isEmpty)
@@ -285,7 +296,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.reviewExists(1));
   }
 
-  "addreviews(List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)]" should "add the passed-in reviews to the reviews datastore" in {
+  "addReviews(List[(Int, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Int)])" should "add the passed-in reviews to the reviews datastore" in {
     Test.addReviews(
       List(
         (2, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), 0.0, "secondary", 1),

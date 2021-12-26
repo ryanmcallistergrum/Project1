@@ -345,6 +345,31 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
+  def getGame(game_name : String) : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = {
+    var result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = null;
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.games where name = '$game_name' limit 1");
+    if (!df.isEmpty) {
+      val row : Row = df.take(1)(0);
+      val genres : List[String] = row.get(10).asInstanceOf[mutable.WrappedArray[String]].toList;
+      val themes : List[String] = row.get(11).asInstanceOf[mutable.WrappedArray[String]].toList;
+      result = (
+        row.getInt(0),
+        row.getString(1),
+        row.getTimestamp(2).toLocalDateTime,
+        row.getString(3),
+        row.getString(4),
+        row.getString(5),
+        row.getString(6),
+        row.getDouble(7),
+        row.getInt(8),
+        row.getInt(9),
+        genres,
+        themes
+      );
+    }
+    return result;
+  }
+
   def getLatestGames() : List[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])] = {
     var results : ArrayBuffer[(Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), "select * from p1.games where release_date = (select max(release_date) from p1.games)");
@@ -1002,6 +1027,31 @@ object HiveDBManager extends HiveConnection {
   def getGame(game_id : Int) : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = {
     var result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select * from p1.games where game_id = $game_id limit 1");
+    if (!df.isEmpty) {
+      val row : Row = df.take(1)(0);
+      val genres : List[String] = row.get(10).asInstanceOf[mutable.WrappedArray[String]].toList;
+      val themes : List[String] = row.get(11).asInstanceOf[mutable.WrappedArray[String]].toList;
+      result = (
+        row.getInt(0),
+        row.getString(1),
+        row.getTimestamp(2).toLocalDateTime,
+        row.getString(3),
+        row.getString(4),
+        row.getString(5),
+        row.getString(6),
+        row.getDouble(7),
+        row.getInt(8),
+        row.getInt(9),
+        genres,
+        themes
+      );
+    }
+    return result;
+  }
+
+  def getGame(game_name : String) : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = {
+    var result : (Int, String, LocalDateTime, String, String, String, String, Double, Int, Int, List[String], List[String]) = null;
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.games where name = '$game_name' limit 1");
     if (!df.isEmpty) {
       val row : Row = df.take(1)(0);
       val genres : List[String] = row.get(10).asInstanceOf[mutable.WrappedArray[String]].toList;
