@@ -1,5 +1,7 @@
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import com.roundeights.hasher.Implicits._
+
+import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.collection.mutable
@@ -368,6 +370,34 @@ class HiveDBManager extends HiveConnection {
       );
     }
     return result;
+  }
+
+  def getGamesBetween(startDate : LocalDateTime, endDate : LocalDateTime) : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = {
+    var result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}' order by game_id")
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        for(row : Row <- df.collect()) {
+          val genres : List[String] = row.get(10).asInstanceOf[mutable.WrappedArray[String]].toList;
+          val themes : List[String] = row.get(11).asInstanceOf[mutable.WrappedArray[String]].toList;
+          val tuple : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = (
+            row.getLong(0),
+            row.getString(1),
+            row.getTimestamp(2).toLocalDateTime,
+            row.getString(3),
+            row.getString(4),
+            row.getString(5),
+            row.getString(6),
+            row.getDouble(7),
+            row.getLong(8),
+            row.getLong(9),
+            genres,
+            themes
+          );
+          result += tuple;
+        }
+
+    return result.toList;
   }
 
   def getLatestGames() : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = {
@@ -1072,6 +1102,34 @@ object HiveDBManager extends HiveConnection {
       );
     }
     return result;
+  }
+
+  def getGamesBetween(startDate : LocalDateTime, endDate : LocalDateTime) : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = {
+    var result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}' order by game_id")
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        for(row : Row <- df.collect()) {
+          val genres : List[String] = row.get(10).asInstanceOf[mutable.WrappedArray[String]].toList;
+          val themes : List[String] = row.get(11).asInstanceOf[mutable.WrappedArray[String]].toList;
+          val tuple : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = (
+            row.getLong(0),
+            row.getString(1),
+            row.getTimestamp(2).toLocalDateTime,
+            row.getString(3),
+            row.getString(4),
+            row.getString(5),
+            row.getString(6),
+            row.getDouble(7),
+            row.getLong(8),
+            row.getLong(9),
+            genres,
+            themes
+          );
+          result += tuple;
+        }
+
+    return result.toList;
   }
 
   def getLatestGames() : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = {

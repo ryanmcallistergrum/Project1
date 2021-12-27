@@ -31,6 +31,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
     override def gameExists(game_id: Long, name: String): Boolean = super.gameExists(game_id, name);
     override def getGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id);
+    override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGamesBetween(startDate, endDate);
     override def getLatestGames(): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getLatestGames();
     override def updateAvgScore(game_id: Long, newScore: Double): Double = super.updateAvgScore(game_id, newScore);
     override def updateArticleCount(game_id: Long, newArticleCount: Long): Long = super.updateArticleCount(game_id, newArticleCount);
@@ -224,6 +225,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   it should "return null if the game_id does not exist in the games datastore" in {
     val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame("nonexistentgame");
     assert(result == null);
+  }
+
+  "getGamesBetween(LocalDateTime, LocalDateTime)" should "return a list of games that exist between the start and end dates" in {
+    val result : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = Test.getGamesBetween(LocalDateTime.parse("2021-12-01T00:00:00"), LocalDateTime.parse("2021-12-31T23:59:59"));
+    if (result.isEmpty)
+      assert(result.isEmpty);
+    else
+      assert(result.nonEmpty);
   }
 
   "getLatestGames()" should "return the game details with the latest LocalDateTime of games that we have in the database" in {
