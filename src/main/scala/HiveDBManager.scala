@@ -400,6 +400,26 @@ class HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
+  def getMaxGameIdBetween(startDate : LocalDateTime, endDate : LocalDateTime) : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select max(game_id) from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}'");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
+  }
+
+  def getGameCountBetween(startDate : LocalDateTime, endDate : LocalDateTime) : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}'");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
+  }
+
   def getLatestGames() : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = {
     var results : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), "select * from p1.games where release_date = (select max(release_date) from p1.games)");
@@ -426,6 +446,26 @@ class HiveDBManager extends HiveConnection {
         }
       };
     return results.toList;
+  }
+
+  def getMaxGameId() : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select max(game_id) from p1.games");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
+  }
+
+  def getGameCount() : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.games");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
   }
 
   def updateAvgScore(game_id : Long, newScore : Double) : Double = {
@@ -611,6 +651,14 @@ class HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
+  def getGameReviewCount(game_id : Long) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.reviews where game_id = $game_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
   def getLatestReviewDate() : LocalDateTime = {
     val df : DataFrame = executeQuery(connect(), "select max(publish_date) from p1.reviews");
     if (!df.isEmpty)
@@ -685,6 +733,14 @@ class HiveDBManager extends HiveConnection {
       if (!df.take(1)(0).isNullAt(0))
         return true;
     return false;
+  }
+
+  def getGameArticleCount(game_id : Long) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where game_id = $game_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0);
+    return 0L;
   }
 
   def getGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {
@@ -1132,6 +1188,26 @@ object HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
+  def getMaxGameIdBetween(startDate : LocalDateTime, endDate : LocalDateTime) : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select max(game_id) from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}'");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
+  }
+
+  def getGameCountBetween(startDate : LocalDateTime, endDate : LocalDateTime) : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}'");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
+  }
+
   def getLatestGames() : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = {
     var results : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), "select * from p1.games where release_date = (select max(release_date) from p1.games)");
@@ -1158,6 +1234,26 @@ object HiveDBManager extends HiveConnection {
         }
       };
     return results.toList;
+  }
+
+  def getMaxGameId() : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select max(game_id) from p1.games");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
+  }
+
+  def getGameCount() : Long = {
+    var result : Long = 0L;
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.games");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        result = df.take(1)(0).getLong(0);
+
+    return result;
   }
 
   def updateAvgScore(game_id : Long, newScore : Double) : Double = {
@@ -1343,6 +1439,14 @@ object HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
+  def getGameReviewCount(game_id : Long) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.reviews where game_id = $game_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
   def getLatestReviewDate() : LocalDateTime = {
     val df : DataFrame = executeQuery(connect(), "select max(publish_date) from p1.reviews");
     if (!df.isEmpty)
@@ -1417,6 +1521,14 @@ object HiveDBManager extends HiveConnection {
       if (!df.take(1)(0).isNullAt(0))
         return true;
     return false;
+  }
+
+  def getGameArticleCount(game_id : Long) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where game_id = $game_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0);
+    return 0L;
   }
 
   def getGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {
