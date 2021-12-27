@@ -15,7 +15,9 @@ class GamespotAPI {
   protected val articleFields : List[String] = List(
     "id", "authors", "title", "deck", "lede", "body", "image", "categories", "associations", "publish_date", "update_date", "videos_api_url", "site_detail_url"
   );
-  protected val articleFilterFields : List[String] = List("id", "title", "categories", "associations", "publish_date");
+  protected val articleFilterFields : List[String] = List(
+    "id", "title", "categories", "associations", "publish_date", "association"
+  );
   protected val articleSortFields : List[String] = List(
     "id", "title", "publish_date"
   );
@@ -27,7 +29,7 @@ class GamespotAPI {
   protected val reviewFields : List[String] = List(
     "id", "authors", "title", "deck", "lede", "body", "good", "bad", "image", "publish_date", "update_date", "score", "review_type", "movie", "television" ,"game", "releases", "site_detail_url", "videos_api_url"
   );
-  protected val reviewFilterFields : List[String] = List("id", "title", "publish_date", "update_date");
+  protected val reviewFilterFields : List[String] = List("id", "title", "publish_date", "update_date", "association");
   protected val reviewSortFields : List[String] = List("id", "title", "publish_date", "update_date", "score");
 
   protected def setAPIKey(newKey : String) : Unit = {
@@ -46,11 +48,11 @@ class GamespotAPI {
     return request.url;
   }
 
-  protected def setURL(newURL : String) : Unit = {
+  protected def setURL(newURL : String, games : Boolean, articles : Boolean, reviews : Boolean) : Unit = {
     request = Http(newURL).copy(headers = Seq(("User-Agent", "ryanmgrum")));
-    games = false;
-    articles = false;
-    reviews = false;
+    this.games = games;
+    this.articles = articles;
+    this.reviews = reviews;
   }
 
   protected def reset() : Unit = {
@@ -106,22 +108,22 @@ class GamespotAPI {
       request = request.params(("limit", num.toString));
   }
 
-  protected def filterField(fieldName : String, value : String) : Unit = {
+  protected def filterField(fieldName : String, separator : String, value : String) : Unit = {
     if (
       (articles && articleFilterFields.contains(fieldName)) ||
       (games && gameFilterFields.contains(fieldName)) ||
       (reviews && reviewFilterFields.contains(fieldName))
     )
-      request = request.params(("filter", fieldName + ":" + value));
+      request = request.params(("filter", fieldName + separator + value));
   }
 
-  protected def filterField(fieldName : String, value : Int) : Unit = {
+  protected def filterField(fieldName : String, separator : String, value : Int) : Unit = {
     if (
       (articles && articleFilterFields.contains(fieldName)) ||
       (games && gameFilterFields.contains(fieldName)) ||
       (reviews && reviewFilterFields.contains(fieldName))
     )
-      request = request.params(("filter", fieldName + ":" + value.toString));
+      request = request.params(("filter", fieldName + separator + value.toString));
   }
 
   protected def sortField(fieldName : String, asc : Boolean) : Unit = {

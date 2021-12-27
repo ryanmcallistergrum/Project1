@@ -19,14 +19,15 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     override def getAPIKey() : String = super.getAPIKey();
     override def getRequest() : HttpRequest = super.getRequest();
     override def getURL() : String = super.getURL();
+    override def setURL(newURL : String, games : Boolean, articles : Boolean, reviews : Boolean) : Unit = super.setURL(newURL, games, articles, reviews);
     override def reset() : Unit = super.reset();
     override def init() : Unit = super.init();
     override def selectEndpoint(games : Boolean, articles : Boolean, reviews : Boolean) : Unit = super.selectEndpoint(games, articles, reviews);
     override def setFormat(xml : Boolean, json : Boolean, jsonp : Boolean) : Unit = super.setFormat(xml, json, jsonp);
     override def setOffset(offset : Long) : Unit = super.setOffset(offset);
     override def setLimit(limit : Int) : Unit = super.setLimit(limit);
-    override def filterField(fieldName : String, value : String) : Unit = super.filterField(fieldName, value);
-    override def filterField(fieldName : String, value : Int) : Unit = super.filterField(fieldName, value);
+    override def filterField(fieldName : String, separator : String, value : String) : Unit = super.filterField(fieldName, separator, value);
+    override def filterField(fieldName : String, separator : String, value : Int) : Unit = super.filterField(fieldName, separator, value);
     override def sortField(fieldName : String, asc : Boolean) : Unit = super.sortField(fieldName, asc);
     override def getResults() : String = super.getResults();
     override def getAPIConfig(filename : String) : Map[String, String] = super.getAPIConfig(filename);
@@ -49,6 +50,11 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
 
   "getURL()" should "return a non-empty String containing Gamespot's API" in {
     assert(Test.getURL().equals("https://www.gamespot.com/api/"));
+  }
+
+  "setURL(String, Boolean, Boolean, Boolean)" should "set the URL for the request and the endpoint Boolean" in {
+    Test.setURL("test", false, false, false);
+    assert(Test.getURL().equals("test"));
   }
 
   "reset()" should "set request to null and apiKey to an empty String" in {
@@ -194,66 +200,66 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
   "filterField(String, String)" should "add a param containing the fieldName and value" in {
     Test.init();
     Test.selectEndpoint(true, false, false);
-    Test.filterField(Test.getGameFilterFields().head, "test");
+    Test.filterField(Test.getGameFilterFields().head, ":", "test");
     assert(Test.getRequest().params.contains(("filter", Test.getGameFilterFields().head + ":test")));
 
     Test.init();
     Test.selectEndpoint(false, true, false);
-    Test.filterField(Test.getArticleFilterFields().head, "test");
+    Test.filterField(Test.getArticleFilterFields().head, ":", "test");
     assert(Test.getRequest().params.contains(("filter", Test.getArticleFilterFields().head + ":test")));
 
     Test.init();
     Test.selectEndpoint(false, false, true);
-    Test.filterField(Test.getReviewFilterFields().head, "test");
+    Test.filterField(Test.getReviewFilterFields().head, ":", "test");
     assert(Test.getRequest().params.contains(("filter", Test.getReviewFilterFields().head +  ":test")));
   }
 
   it should "add the first true parameter in the parameter list and ignore the rest" in {
     Test.init();
     Test.selectEndpoint(true, true, false);
-    Test.filterField(Test.getGameFilterFields().head, "test");
+    Test.filterField(Test.getGameFilterFields().head, ":", "test");
     assert(Test.getRequest().params.contains(("filter", Test.getGameFilterFields().head + ":test")));
     Test.init();
     Test.selectEndpoint(true, false, true);
-    Test.filterField(Test.getGameFilterFields().head, "test");
+    Test.filterField(Test.getGameFilterFields().head, ":", "test");
     assert(Test.getRequest().params.contains(("filter", Test.getGameFilterFields().head + ":test")));
 
     Test.init();
     Test.selectEndpoint(false, true, true);
-    Test.filterField(Test.getArticleFilterFields().head, "test");
+    Test.filterField(Test.getArticleFilterFields().head, ":", "test");
     assert(Test.getRequest().params.contains(("filter", Test.getArticleFilterFields().head + ":test")));
   }
 
   "filterField(String, Int)" should "add a param containing the fieldName and value" in {
     Test.init();
     Test.selectEndpoint(true, false, false);
-    Test.filterField(Test.getGameFilterFields().head, 1);
+    Test.filterField(Test.getGameFilterFields().head, ":", 1);
     assert(Test.getRequest().params.contains(("filter", Test.getGameFilterFields().head + ":" + 1)));
 
     Test.init();
     Test.selectEndpoint(false, true, false);
-    Test.filterField(Test.getArticleFilterFields().head, 1);
+    Test.filterField(Test.getArticleFilterFields().head, ":", 1);
     assert(Test.getRequest().params.contains(("filter", Test.getArticleFilterFields().head + ":" + 1)));
 
     Test.init();
     Test.selectEndpoint(false, false, true);
-    Test.filterField(Test.getReviewFilterFields().head, 1);
+    Test.filterField(Test.getReviewFilterFields().head, ":", 1);
     assert(Test.getRequest().params.contains(("filter", Test.getReviewFilterFields().head +  ":" + 1)));
   }
 
   it should "add the first true parameter in the parameter list and ignore the rest" in {
     Test.init();
     Test.selectEndpoint(true, true, false);
-    Test.filterField(Test.getGameFilterFields().head, 1);
+    Test.filterField(Test.getGameFilterFields().head, ":", 1);
     assert(Test.getRequest().params.contains(("filter", Test.getGameFilterFields().head + ":" + 1)));
     Test.init();
     Test.selectEndpoint(true, false, true);
-    Test.filterField(Test.getGameFilterFields().head, 1);
+    Test.filterField(Test.getGameFilterFields().head, ":", 1);
     assert(Test.getRequest().params.contains(("filter", Test.getGameFilterFields().head + ":" + 1)));
 
     Test.init();
     Test.selectEndpoint(false, true, true);
-    Test.filterField(Test.getArticleFilterFields().head, 1);
+    Test.filterField(Test.getArticleFilterFields().head, ":", 1);
     assert(Test.getRequest().params.contains(("filter", Test.getArticleFilterFields().head + ":" + 1)));
   }
 
