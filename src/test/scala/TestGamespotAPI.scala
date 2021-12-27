@@ -23,7 +23,7 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     override def init() : Unit = super.init();
     override def selectEndpoint(games : Boolean, articles : Boolean, reviews : Boolean) : Unit = super.selectEndpoint(games, articles, reviews);
     override def setFormat(xml : Boolean, json : Boolean, jsonp : Boolean) : Unit = super.setFormat(xml, json, jsonp);
-    override def setOffset(offset : Int) : Unit = super.setOffset(offset);
+    override def setOffset(offset : Long) : Unit = super.setOffset(offset);
     override def setLimit(limit : Int) : Unit = super.setLimit(limit);
     override def filterField(fieldName : String, value : String) : Unit = super.filterField(fieldName, value);
     override def filterField(fieldName : String, value : Int) : Unit = super.filterField(fieldName, value);
@@ -154,25 +154,25 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     assert(Test.getRequest().params.isEmpty);
   }
 
-  "setOffset(Int)" should "add a param containing the result to start from" in {
+  "setOffset(Long)" should "add a param containing the result to start from" in {
     Test.init();
-    Test.setOffset(1);
+    Test.setOffset(1L);
     assert(Test.getRequest().params.contains(("offset", "1")));
   }
 
   it should "not add a param if the offset is below zero" in {
     Test.init();
-    Test.setOffset(-1);
+    Test.setOffset(-1L);
     assert(Test.getRequest().params.isEmpty);
   }
 
   it should "add a param if greater than or equal to zero" in {
     Test.init();
-    Test.setOffset(0);
+    Test.setOffset(0L);
     assert(Test.getRequest().params.contains(("offset", "0")));
 
     Test.init();
-    Test.setOffset(1);
+    Test.setOffset(1L);
     assert(Test.getRequest().params.contains(("offset", "1")));
   }
 

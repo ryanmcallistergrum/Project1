@@ -89,7 +89,7 @@ class GamespotAPI {
       request = request.params(("format", "jsonp"));
   }
 
-  protected def setOffset(num : Int) : Unit = {
+  protected def setOffset(num : Long) : Unit = {
     if (num >= 0)
       request = request.params(("offset", num.toString));
   }
