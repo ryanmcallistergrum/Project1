@@ -73,17 +73,17 @@ class GamespotAPI {
       this.games = true;
       this.articles = false;
       this.reviews = false;
-      request = Http(URL + "games/")
+      request = Http(URL + "games/").copy(headers = Seq(("User-Agent", "ryanmgrum")));
     } else if (articles) {
       this.games = false;
       this.articles = true;
       this.reviews = false;
-      request = Http(URL + "articles/")
+      request = Http(URL + "articles/").copy(headers = Seq(("User-Agent", "ryanmgrum")));
     } else if (reviews) {
       this.games = false;
       this.articles = false;
       this.reviews = true;
-      request = Http(URL + "reviews/")
+      request = Http(URL + "reviews/").copy(headers = Seq(("User-Agent", "ryanmgrum")));
     }
   }
 

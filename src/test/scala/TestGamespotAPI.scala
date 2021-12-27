@@ -19,7 +19,6 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     override def getAPIKey() : String = super.getAPIKey();
     override def getRequest() : HttpRequest = super.getRequest();
     override def getURL() : String = super.getURL();
-    override def setURL(newURL: String): Unit = super.setURL(newURL);
     override def reset() : Unit = super.reset();
     override def init() : Unit = super.init();
     override def selectEndpoint(games : Boolean, articles : Boolean, reviews : Boolean) : Unit = super.selectEndpoint(games, articles, reviews);
@@ -50,11 +49,6 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
 
   "getURL()" should "return a non-empty String containing Gamespot's API" in {
     assert(Test.getURL().equals("https://www.gamespot.com/api/"));
-  }
-
-  "setURL(String)" should "set the URL in the request to the passed-in URL" in {
-    Test.setURL("test");
-    assert(Test.getURL().equals("test"));
   }
 
   "reset()" should "set request to null and apiKey to an empty String" in {
