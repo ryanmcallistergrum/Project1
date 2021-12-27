@@ -43,7 +43,14 @@ class GamespotAPI {
   }
 
   protected def getURL() : String = {
-    return URL;
+    return request.url;
+  }
+
+  protected def setURL(newURL : String) : Unit = {
+    request = Http(newURL).copy(headers = Seq(("User-Agent", "ryanmgrum")));
+    games = false;
+    articles = false;
+    reviews = false;
   }
 
   protected def reset() : Unit = {
