@@ -297,7 +297,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   it should "return negative infinity if the game_id does not exist" in {
-    assert(Test.calculateAvgScore(-1L) == Double.NegativeInfinity;)
+    assert(Test.calculateAvgScore(-1L) == Double.NegativeInfinity);
   }
 
   "getAvgScore(Long)" should "return the last known average score for a game with the given game_id" in {
