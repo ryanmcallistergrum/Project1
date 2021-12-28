@@ -1291,6 +1291,25 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
+  def calculateAvgScore(game_id : Long) : Double = {
+    var totalScore : Double = Double.NegativeInfinity;
+    val reviews : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = getGameReviews(game_id);
+    if (reviews.nonEmpty) {
+      for(review : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) <- reviews)
+        totalScore += review._9
+      return totalScore / reviews.size;
+    } else
+      return totalScore;
+  }
+
+  def getAvgScore(game_id : Long) : Double = {
+    var result : Double = Double.NegativeInfinity;
+    val game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = getGame(game_id);
+    if (game != null)
+      result = game._8;
+    return result;
+  }
+
   def updateAvgScore(game_id : Long, newScore : Double) : Double = {
     var result : Double = Double.NegativeInfinity;
     val spark : SparkSession = connect();
@@ -1323,6 +1342,14 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
+  def getPreviousGameArticleCount(game_id : Long) : Long = {
+    var result : Long = Long.MinValue;
+    val game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = getGame(game_id);
+    if (game != null)
+      result = game._9;
+    return result;
+  }
+
   def updateArticleCount(game_id : Long, newArticleCount : Long) : Long = {
     var result : Long = Long.MinValue;
     val game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = getGame(game_id);
@@ -1350,6 +1377,14 @@ object HiveDBManager extends HiveConnection {
         );
       }
     }
+    return result;
+  }
+
+  def getPreviousGameReviewCount(game_id : Long) : Long = {
+    var result : Long = Long.MinValue;
+    val game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = getGame(game_id);
+    if (game != null)
+      result = game._10
     return result;
   }
 
