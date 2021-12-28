@@ -12,7 +12,7 @@ class HiveConnection {
     val spark = SparkSession
       .builder
       .appName("Project1")
-      .config("spark.master", "local")
+      .config("spark.master", "local[*]")
       .enableHiveSupport()
       .getOrCreate();
     spark.sparkContext.setLogLevel("ERROR")
