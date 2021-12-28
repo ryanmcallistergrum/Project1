@@ -29,10 +29,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def saveQuery(user_id: Int, query_name: String, query: String): Unit = super.saveQuery(user_id, query_name, query);
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
     override def addGame(game_id: Long, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Long, review_count: Long, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
-    override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_name);
     override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
-    override def gameExists(game_id: Long, name: String): Boolean = super.gameExists(game_id, name);
     override def getGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id);
+    override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_name);
+    override def gameExists(game_id: Long, name: String): Boolean = super.gameExists(game_id, name);
     override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGamesBetween(startDate, endDate);
     override def getMaxGameIdBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getMaxGameIdBetween(startDate, endDate);
     override def getGameCountBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getGameCountBetween(startDate, endDate);
@@ -52,6 +52,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def addReviews(reviews: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]): Unit = super.addReviews(reviews);
     override def reviewExists(review_id: Long): Boolean = super.reviewExists(review_id);
     override def getGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.getGameReviews(game_id);
+    override def getReviewCount(): Long = super.getReviewCount();
     override def getGameReviewCount(game_id: Long): Long = super.getGameReviewCount(game_id);
     override def getLatestReviewDate(): LocalDateTime = super.getLatestReviewDate();
     override def getLatestGameReviewDate(game_id: Long): LocalDateTime = super.getLatestGameReviewDate(game_id);
@@ -67,15 +68,15 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
-    Test.deleteGameReviews(1L);
-    Test.deleteGameArticles(1L);
     Test.deleteGame(1L);
+    Test.deleteGameArticles(1L);
+    Test.deleteGameReviews(1L);
     assert(true);
   }
 
   "executeQuery(SparkSession, String)" should "be for TESTING ONLY!" in {
-    val df : DataFrame = Test.executeQuery(Test.connect(), "select * from p1.articles");
-    df.show(false);
+    val df : DataFrame = Test.executeQuery(Test.connect(), "select game_id, name, release_date, articles_api_url, article_count, reviews_api_url, review_count from p1.games order by game_id");
+    df.show(Int.MaxValue, false);
     assert(true);
   }
 
@@ -419,6 +420,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       assert(results.isEmpty);
     else
       assert(results.nonEmpty);
+  }
+
+  "getReviewCount()" should "return the total number of reviews in our datastore" in {
+    assert(Test.getReviewCount() >= 0);
   }
 
   "getGameReviewCount(Long)" should "return the number of reviews a game has in the reviews datastore" in {

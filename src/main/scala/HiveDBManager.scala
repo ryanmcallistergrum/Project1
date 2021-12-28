@@ -686,6 +686,14 @@ class HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
+  def getReviewCount() : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.reviews");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
   def getGameReviewCount(game_id : Long) : Long = {
     val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.reviews where game_id = $game_id");
     if (!df.isEmpty)
@@ -1507,6 +1515,14 @@ object HiveDBManager extends HiveConnection {
         }
 
     return result.toList;
+  }
+
+  def getReviewCount() : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.reviews");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0);
+    return 0L;
   }
 
   def getGameReviewCount(game_id : Long) : Long = {
