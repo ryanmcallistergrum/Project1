@@ -771,7 +771,7 @@ class HiveDBManager extends HiveConnection {
   }
 
   def getGameArticleCount(game_id : Long) : Long = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where game_id = $game_id");
+    val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.articles where game_id = $game_id");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
         return df.take(1)(0).getLong(0);
