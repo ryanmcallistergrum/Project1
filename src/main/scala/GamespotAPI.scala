@@ -1,4 +1,5 @@
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
+
 import java.io.IOException
 import scala.io.BufferedSource
 
@@ -141,7 +142,7 @@ class GamespotAPI {
   protected def getResults() : String = {
     var result:String = "";
     try {
-      val response : HttpResponse[String] = request.params(("api_key", apiKey)).asString
+      val response : HttpResponse[String] = request.params(("api_key", apiKey)).option(HttpOptions.connTimeout(10000)).option(HttpOptions.readTimeout(50000)).asString
       result = response.body;
     } catch {
       case i : IOException => {
