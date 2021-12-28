@@ -1,12 +1,14 @@
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import java.time.LocalDateTime
 
 class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   object Test extends HiveDBManager {
     override def connect(): SparkSession = super.connect();
     override def executeDML(spark: SparkSession, sql: String): Unit = super.executeDML(spark, sql);
+    override def executeQuery(spark: SparkSession, sql: String): DataFrame = super.executeQuery(spark, sql);
     override def showQuery(spark: SparkSession, sql: String): Unit = super.showQuery(spark, sql);
     override def createDB() : Unit = super.createDB();
     override def getNextUserId(): Int = super.getNextUserId()
@@ -37,8 +39,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def getLatestGames(): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getLatestGames();
     override def getMaxGameId(): Long = super.getMaxGameId();
     override def getGameCount(): Long = super.getGameCount();
+    override def calculateAvgScore(game_id: Long): Double = super.calculateAvgScore(game_id);
+    override def getAvgScore(game_id : Long) : Double = super.getAvgScore(game_id);
     override def updateAvgScore(game_id: Long, newScore: Double): Double = super.updateAvgScore(game_id, newScore);
+    override def getPreviousGameArticleCount(game_id: Long): Long = super.getPreviousGameArticleCount(game_id);
     override def updateArticleCount(game_id: Long, newArticleCount: Long): Long = super.updateArticleCount(game_id, newArticleCount);
+    override def getPreviousGameReviewCount(game_id: Long): Long = super.getPreviousGameReviewCount(game_id);
     override def updateReviewCount(game_id: Long, newReviewCount: Long): Long = super.updateReviewCount(game_id, newReviewCount);
     override def deleteGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.deleteGame(game_id);
     override def deleteGames(game_ids: List[Long]): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.deleteGames(game_ids);
@@ -58,6 +64,19 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def getLatestGameArticleDate(game_id: Long): LocalDateTime = super.getLatestGameArticleDate(game_id);
     override def getLatestArticleDate(): LocalDateTime = super.getLatestArticleDate();
     override def deleteGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.deleteGameArticles(game_id);
+  }
+
+  "randomcommands" should "only be used FOR TESTING ONLY" in {
+    Test.deleteGameReviews(1L);
+    Test.deleteGameArticles(1L);
+    Test.deleteGame(1L);
+    assert(true);
+  }
+
+  "executeQuery(SparkSession, String)" should "be for TESTING ONLY!" in {
+    val df : DataFrame = Test.executeQuery(Test.connect(), "select * from p1.articles");
+    df.show(false);
+    assert(true);
   }
 
   "deleteDB()" should "clear the P1 database from Derby (FOR TESTING ONLY!)" in {
@@ -142,7 +161,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "deleteUser(Int)" should "remove the passed-in user_id from the users table" in {
-    val id : Int = Test.addUser("test02", "test02");
+    assert(Test.addUser("test02", "test02") > 0);
     assert(Test.usernameExists("test02"));
     Test.deleteUser(Test.authenticate("test02", "test02", false));
     assert(!Test.usernameExists("test02"));
@@ -273,6 +292,22 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getGameCount() == 3);
   }
 
+  "calculateAvgScore()" should "return the latest average score based on the current number of reviews in the datastore" in {
+    assert(Test.calculateAvgScore(1L) >= 0.0);
+  }
+
+  it should "return negative infinity if the game_id does not exist" in {
+    assert(Test.calculateAvgScore(-1L) == Double.NegativeInfinity;)
+  }
+
+  "getAvgScore(Long)" should "return the last known average score for a game with the given game_id" in {
+    assert(Test.getAvgScore(1) == 0.0);
+  }
+
+  it should "return negative infinity if the game does not exist" in {
+    assert(Test.getAvgScore(-1) == Double.NegativeInfinity);
+  }
+
   "updateAvgScore(Long, Double)" should "update the game with the provided game_id's average score with the provided average score and return its previous value" in {
     assert(Test.updateAvgScore(1, 3.2) == 0.0);
     assert(Test.updateAvgScore(1, 0.0) == 3.2);
@@ -287,6 +322,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.updateAvgScore(-1, 2.0) == Double.NegativeInfinity);
   }
 
+  "getPreviousGameArticleCount(Long)" should "return the previously-known article count for a given game" in {
+    assert(Test.getPreviousGameArticleCount(1) == 0);
+  }
+
+  it should "return the smallest Long value if the game_id does not exist in our datastore" in {
+    assert(Test.getPreviousGameArticleCount(-1) == Long.MinValue);
+  }
+
   "updateArticleCount(Long, Long)" should "update the game with the provided game_id's article count with the provided newArticleCount and return the previous article_count value" in {
     assert(Test.updateArticleCount(1, 1) == 0);
     assert(Test.updateArticleCount(1, 0) == 1);
@@ -298,6 +341,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   it should "return the smallest possible Long value if the game_id does not exist" in {
     assert(Test.updateArticleCount(-1, 2) == Long.MinValue);
+  }
+
+  "getPreviousGameReviewCount(Long)" should "return the previously-known review count for a given game" in {
+    assert(Test.getPreviousGameReviewCount(1) == 0);
+  }
+
+  it should "return the smallest possible Long value if the game_id does not exist in our datastore" in {
+    assert(Test.getPreviousGameReviewCount(-1) == Long.MinValue);
   }
 
   "updateReviewCount(Long, Long)" should "update the game with the provided game_id's review count with the provided newReviewCount and return the previous review_count value" in {
