@@ -565,6 +565,11 @@ class APIFetcher extends GamespotAPI {
                 reviewJson("results")(i)("game")("id").num.toLong
               );
 
+              if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(reviewJson("results")(i)("id").num.toLong) > 0) {
+                HiveDBManager.updateReviewCount(reviewJson("results")(i)("id").num.toLong, HiveDBManager.getGameReviewCount(reviewJson("results")(i)("id").num.toLong))
+                HiveDBManager.updateAvgScore(reviewJson("results")(i)("id").num.toLong, HiveDBManager.calculateAvgScore(reviewJson("results")(i)("id").num.toLong));
+              }
+
               if (output && !summarize) {
                 val review: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = HiveDBManager.getReview(reviewJson("results")(i)("id").num.toLong);
                 outputFinding(s"${reviewOffset + i}: Added new review for ${"\""}${reviewJson("results")(i)("game")("name").str}${"\""}: $review");
@@ -578,11 +583,6 @@ class APIFetcher extends GamespotAPI {
             i += 1;
           }
           reviewOffset += reviewJson("number_of_page_results").num.toLong;
-
-          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(reviewJson("results")(i)("id").num.toLong) > 0) {
-            HiveDBManager.updateReviewCount(reviewJson("results")(i)("id").num.toLong, HiveDBManager.getGameReviewCount(reviewJson("results")(i)("id").num.toLong))
-            HiveDBManager.updateAvgScore(reviewJson("results")(i)("id").num.toLong, HiveDBManager.calculateAvgScore(reviewJson("results")(i)("id").num.toLong));
-          }
 
           if (running) {
             Thread.sleep(1000);
