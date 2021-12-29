@@ -5,5 +5,6 @@ object BasicView {
     println("2. Execute Query");
     println("3. Change Username");
     println("4. Change Password");
+    println("5. Log Out");
   }
 }
