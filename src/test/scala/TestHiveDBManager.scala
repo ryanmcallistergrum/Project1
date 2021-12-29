@@ -32,7 +32,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
     override def getGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id);
     override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_name);
-    override def gameExists(game_id: Long, name: String): Boolean = super.gameExists(game_id, name);
+    override def gameExists(game_id: Long, year: String): Boolean = super.gameExists(game_id, year);
     override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGamesBetween(startDate, endDate);
     override def getMaxGameIdBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getMaxGameIdBetween(startDate, endDate);
     override def getGameCountBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getGameCountBetween(startDate, endDate);
@@ -51,7 +51,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def deleteGames(game_ids: List[Long]): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.deleteGames(game_ids);
     override def addReview(review_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, score: Double, review_type: String, game_id: Long): Unit = super.addReview(review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id);
     override def addReviews(reviews: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]): Unit = super.addReviews(reviews);
-    override def reviewExists(review_id: Long): Boolean = super.reviewExists(review_id);
+    override def reviewExists(review_id: Long, year : String): Boolean = super.reviewExists(review_id, year);
     override def getReview(review_id: Long): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = super.getReview(review_id);
     override def getGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.getGameReviews(game_id);
     override def getReviewCount(): Long = super.getReviewCount();
@@ -59,7 +59,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def deleteGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.deleteGameReviews(game_id);
     override def addArticle(article_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, categories: Map[Long, String], game_id: Long): Unit = super.addArticle(article_id, authors, title, deck, lede, body, publish_date, update_date, categories, game_id);
     override def addArticles(articles: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)]): Unit = super.addArticles(articles);
-    override def articleExists(article_id: Long): Boolean = super.articleExists(article_id);
+    override def articleExists(article_id: Long, year : String): Boolean = super.articleExists(article_id, year);
     override def getArticle(article_id: Long): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = super.getArticle(article_id);
     override def getGameArticleCount(game_id: Long): Long = super.getGameArticleCount(game_id);
     override def getGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.getGameArticles(game_id);
@@ -152,7 +152,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   it should "return false if the username does not exist" in {
-    assert(!Test.usernameExists("nonexistentusername"));
+    assert(!Test.usernameExists(""));
   }
 
   "isAdmin(Int)" should "return true or false depending on if the user is an admin" in {
@@ -217,7 +217,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   "addGame(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]" should "insert a new game record into the games table if it does not already exist" in {
     Test.addGame(1, "test", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String]("test01", "test02"), List[String]("test03", "test04"));
-    assert(Test.gameExists(1, "test"));
+    assert(Test.gameExists(1, LocalDateTime.now().getYear.toString));
   }
 
   "addGames(List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])])" should "insert new game records into the games table if they do not already exist" in {
@@ -225,17 +225,17 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       (2, "test1", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String](), List[String]()),
       (3, "test2", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String](), List[String]()),
     ));
-    assert(Test.gameExists(2, "test1"));
-    assert(Test.gameExists(3, "test2"));
+    assert(Test.gameExists(2, LocalDateTime.now().getYear.toString));
+    assert(Test.gameExists(3, LocalDateTime.now().getYear.toString));
   }
 
-  "gameExists(Long, String)" should "return true when its game_id and name parameters match a game in our datastore" in {
-    assert(Test.gameExists(1, "test"));
+  "gameExists(Long, String)" should "return true when its game_id and year parameters match a game in our datastore" in {
+    assert(Test.gameExists(1, LocalDateTime.now().getYear.toString));
   }
 
-  it should "return false if the game_id does not match a game, then the name if the id matches, in the datastore" in {
-    assert(!Test.gameExists(2, "test"));
-    assert(!Test.gameExists(1, "test1"));
+  it should "return false if the game_id does not match a game within the given partition in the datastore" in {
+    assert(!Test.gameExists(2, "1000"));
+    assert(!Test.gameExists(1, "1000"));
   }
 
   "getGame(Long)" should "return the game details for the specified game_id, assuming that it exists in our games datastore" in {
@@ -405,7 +405,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   "addReview(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)" should "add a new review to the reviews datastore" in {
     Test.addReview(1, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), 0.0, "primary", 1);
-    assert(Test.reviewExists(1));
+    assert(Test.reviewExists(1, LocalDateTime.now().getYear.toString));
   }
 
   "addReviews(List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)])" should "add the passed-in reviews to the reviews datastore" in {
@@ -415,16 +415,16 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         (3, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), 0.0, "second take", 1)
       )
     );
-    assert(Test.reviewExists(2));
-    assert(Test.reviewExists(3));
+    assert(Test.reviewExists(2, LocalDateTime.now().getYear.toString));
+    assert(Test.reviewExists(3, LocalDateTime.now().getYear.toString));
   }
 
-  "reviewExists(Long)" should "return true when it finds a review with the given review_id in our reviews datastore" in {
-    assert(Test.reviewExists(1));
+  "reviewExists(Long, String)" should "return true when it finds a review with the given review_id in our reviews datastore within the given year partition" in {
+    assert(Test.reviewExists(1, LocalDateTime.now().getYear.toString));
   }
 
-  it should "return false if the review_id does not exist" in {
-    assert(!Test.reviewExists(-1));
+  it should "return false if the review_id does not exist in the given partition" in {
+    assert(!Test.reviewExists(-1, "1000"));
   }
 
   "getGameReviews(Long)" should "return a list of reviews for the given game_id, if any exist" in {
@@ -466,7 +466,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   "addArticle(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)" should "add a new article to the articles datastore" in {
     Test.addArticle(1, "test", "test", "test", "test", "test", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1);
-    assert(Test.articleExists(1));
+    assert(Test.articleExists(1, LocalDateTime.now().getYear.toString));
   }
 
   "addArticles(List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)])" should "insert the passed-in articles into the articles datastore" in {
@@ -476,16 +476,16 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         (3, "test2", "test2", "test2", "test2", "test2", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1)
       )
     );
-    assert(Test.articleExists(2));
-    assert(Test.articleExists(3));
+    assert(Test.articleExists(2, LocalDateTime.now().getYear.toString));
+    assert(Test.articleExists(3, LocalDateTime.now().getYear.toString));
   }
 
-  "articleExists(Long)" should "return true for an article_id that exist in the articles datastore" in {
-    assert(Test.articleExists(1));
+  "articleExists(Long, String)" should "return true for an article_id that exist in the articles datastore within the given year partition" in {
+    assert(Test.articleExists(1, LocalDateTime.now().getYear.toString));
   }
 
-  it should "return false for a non-existent article_id" in {
-    assert(!Test.articleExists(-1));
+  it should "return false for a non-existent article_id in the given year partition" in {
+    assert(!Test.articleExists(-1, LocalDateTime.now().getYear.toString));
   }
 
   "getArticle(Long)" should "return the details of the article with the given article_id" in {
