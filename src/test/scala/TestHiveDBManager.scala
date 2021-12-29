@@ -38,6 +38,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def getGameCountBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getGameCountBetween(startDate, endDate);
     override def getLatestGames(): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getLatestGames();
     override def getMaxGameId(): Long = super.getMaxGameId();
+    override def getGameIds() : List[Long] = super.getGameIds();
     override def getGameCount(): Long = super.getGameCount();
     override def calculateAvgScore(game_id: Long): Double = super.calculateAvgScore(game_id);
     override def getAvgScore(game_id : Long) : Double = super.getAvgScore(game_id);
@@ -66,9 +67,15 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
-    Test.deleteGame(1L);
-    Test.deleteGameArticles(1L);
-    Test.deleteGameReviews(1L);
+    for(game : Long <- Test.getGameIds()) {
+      if (Test.getPreviousGameReviewCount(game) != Test.getGameReviewCount(game))
+        Test.updateReviewCount(game, Test.getGameReviewCount(game));
+      if (Test.getPreviousGameArticleCount(game) != Test.getGameArticleCount(game))
+        Test.updateArticleCount(game, Test.getGameArticleCount(game));
+      if (Test.getAvgScore(game) != Test.calculateAvgScore(game))
+        Test.updateAvgScore(game, Test.calculateAvgScore(game));
+      println(s"Finished updating ${"\""}${Test.getGame(game)._2}${"\""}.");
+    }
     assert(true);
   }
 
@@ -285,6 +292,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   "getMaxGameId()" should "return the largest game_id in our games datastore" in {
     assert(Test.getMaxGameId() == 3);
+  }
+
+  "getGameIds()" should "return a list containing the game_ids in our games datastore" in {
+    val games : List[Long] = Test.getGameIds();
+    if (games.isEmpty)
+      assert(games.isEmpty);
+    else
+      assert(games.nonEmpty);
   }
 
   "getGameCount()" should "return the number of games stored in our games datastore" in {

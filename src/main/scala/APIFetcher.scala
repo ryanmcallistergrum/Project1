@@ -190,6 +190,9 @@ class APIFetcher extends GamespotAPI {
             getGame(gameJson("results")(i)("id").num.toLong);
           i += 1;
         }
+
+        outputFinding(s"Finished fetching game ${"\""}$game_name${"\""}! Stopping instance...");
+        running = false;
       } else {
         outputFinding(s"Game ${"\""}$game_name${"\""} not found in Gamespot API! Stopping instance...");
         running = false;
@@ -249,6 +252,9 @@ class APIFetcher extends GamespotAPI {
               }
             }
           }
+
+          outputFinding(s"Finished fetching games like ${"\""}$game_name${"\""}! Stopping instance...");
+          running = false;
         } else {
           outputFinding(s"Games like ${"\""}$game_name${"\""} not found in Gamespot API! Stopping instance...");
           running = false;
@@ -311,6 +317,9 @@ class APIFetcher extends GamespotAPI {
               }
             }
           }
+
+          outputFinding(s"Finished fetching games between $startDate and $endDate! Stopping instance...");
+          running = false;
         } else {
           outputFinding(s"No games found between $startDate and $endDate in Gamespot API! Stopping instance...");
           running = false;
@@ -399,8 +408,10 @@ class APIFetcher extends GamespotAPI {
 
           if (running && output && summarize && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1) > 0)
             outputFinding(s"Added ${reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1)} reviews to ${"\""}${game._2}${"\""}.");
-          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game_id) > 0)
-            HiveDBManager.updateReviewCount(game._1, HiveDBManager.getGameReviewCount(game._1));
+          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game_id) > 0) {
+            HiveDBManager.updateReviewCount(game._1, HiveDBManager.getGameReviewCount(game._1))
+            HiveDBManager.updateAvgScore(game._1, HiveDBManager.calculateAvgScore(game._1));
+          }
         } else {
           outputFinding("Error while fetching from API! " + reviewJson("error").str);
           running = false;
@@ -568,6 +579,11 @@ class APIFetcher extends GamespotAPI {
           }
           reviewOffset += reviewJson("number_of_page_results").num.toLong;
 
+          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(reviewJson("results")(i)("id").num.toLong) > 0) {
+            HiveDBManager.updateReviewCount(reviewJson("results")(i)("id").num.toLong, HiveDBManager.getGameReviewCount(reviewJson("results")(i)("id").num.toLong))
+            HiveDBManager.updateAvgScore(reviewJson("results")(i)("id").num.toLong, HiveDBManager.calculateAvgScore(reviewJson("results")(i)("id").num.toLong));
+          }
+
           if (running) {
             Thread.sleep(1000);
             init();
@@ -582,6 +598,9 @@ class APIFetcher extends GamespotAPI {
             }
           }
         }
+
+        outputFinding("Finished fetching all reviews! Stopping instance...");
+        running = false;
       } else {
         outputFinding("Error while fetching from API! " + reviewJson("error").str);
         running = false;

@@ -448,6 +448,16 @@ class HiveDBManager extends HiveConnection {
     return results.toList;
   }
 
+  def getGameIds() : List[Long] = {
+    var results : ArrayBuffer[Long] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), s"select game_id from p1.games order by game_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        results += df.take(1)(0).getLong(0);
+
+    return results.toList;
+  }
+
   def getMaxGameId() : Long = {
     var result : Long = 0L;
     val df : DataFrame = executeQuery(connect(), s"select max(game_id) from p1.games");
@@ -1294,6 +1304,16 @@ object HiveDBManager extends HiveConnection {
           results += game;
         }
       };
+    return results.toList;
+  }
+
+  def getGameIds() : List[Long] = {
+    var results : ArrayBuffer[Long] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), s"select game_id from p1.games order by game_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        results += df.take(1)(0).getLong(0);
+
     return results.toList;
   }
 
