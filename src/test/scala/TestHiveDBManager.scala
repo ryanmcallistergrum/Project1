@@ -30,29 +30,28 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
     override def addGame(game_id: Long, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Long, review_count: Long, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
     override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
-    override def getGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id);
+    override def getGame(game_id: Long, year : String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id, year);
     override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_name);
     override def gameExists(game_id: Long, year: String): Boolean = super.gameExists(game_id, year);
     override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGamesBetween(startDate, endDate);
-    override def getMaxGameIdBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getMaxGameIdBetween(startDate, endDate);
+    override def getMaxGameBetween(startDate: LocalDateTime, endDate: LocalDateTime): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getMaxGameBetween(startDate, endDate);
     override def getGameCountBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getGameCountBetween(startDate, endDate);
-    override def getLatestGames(): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getLatestGames();
-    override def getMaxGameId(): Long = super.getMaxGameId();
-    override def getGameIds() : List[Long] = super.getGameIds();
+    override def getMaxGame(): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getMaxGame();
+    override def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGames();
     override def getGameCount(): Long = super.getGameCount();
     override def calculateAvgScore(game_id: Long): Double = super.calculateAvgScore(game_id);
-    override def getAvgScore(game_id : Long) : Double = super.getAvgScore(game_id);
-    override def updateAvgScore(game_id: Long, newScore: Double): Double = super.updateAvgScore(game_id, newScore);
-    override def getPreviousGameArticleCount(game_id: Long): Long = super.getPreviousGameArticleCount(game_id);
-    override def updateArticleCount(game_id: Long, newArticleCount: Long): Long = super.updateArticleCount(game_id, newArticleCount);
-    override def getPreviousGameReviewCount(game_id: Long): Long = super.getPreviousGameReviewCount(game_id);
-    override def updateReviewCount(game_id: Long, newReviewCount: Long): Long = super.updateReviewCount(game_id, newReviewCount);
-    override def deleteGame(game_id: Long): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.deleteGame(game_id);
-    override def deleteGames(game_ids: List[Long]): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.deleteGames(game_ids);
+    override def getAvgScore(game_id : Long, year : String) : Double = super.getAvgScore(game_id, year);
+    override def updateAvgScore(game_id: Long, year : String, newScore: Double): Double = super.updateAvgScore(game_id, year, newScore);
+    override def getPreviousGameArticleCount(game_id: Long, year : String): Long = super.getPreviousGameArticleCount(game_id, year);
+    override def updateArticleCount(game_id: Long, year : String, newArticleCount: Long): Long = super.updateArticleCount(game_id, year, newArticleCount);
+    override def getPreviousGameReviewCount(game_id: Long, year : String): Long = super.getPreviousGameReviewCount(game_id, year);
+    override def updateReviewCount(game_id: Long, year : String, newReviewCount: Long): Long = super.updateReviewCount(game_id, year, newReviewCount);
+    override def deleteGame(game_id: Long, year : String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.deleteGame(game_id, year);
+    override def deleteGames(games: Map[Long, String]): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.deleteGames(games);
     override def addReview(review_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, score: Double, review_type: String, game_id: Long): Unit = super.addReview(review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id);
     override def addReviews(reviews: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]): Unit = super.addReviews(reviews);
     override def reviewExists(review_id: Long, year : String): Boolean = super.reviewExists(review_id, year);
-    override def getReview(review_id: Long): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = super.getReview(review_id);
+    override def getReview(review_id: Long, year : String): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = super.getReview(review_id, year);
     override def getGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.getGameReviews(game_id);
     override def getReviewCount(): Long = super.getReviewCount();
     override def getGameReviewCount(game_id: Long): Long = super.getGameReviewCount(game_id);
@@ -60,21 +59,21 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def addArticle(article_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, categories: Map[Long, String], game_id: Long): Unit = super.addArticle(article_id, authors, title, deck, lede, body, publish_date, update_date, categories, game_id);
     override def addArticles(articles: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)]): Unit = super.addArticles(articles);
     override def articleExists(article_id: Long, year : String): Boolean = super.articleExists(article_id, year);
-    override def getArticle(article_id: Long): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = super.getArticle(article_id);
+    override def getArticle(article_id: Long, year : String): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = super.getArticle(article_id, year);
     override def getGameArticleCount(game_id: Long): Long = super.getGameArticleCount(game_id);
     override def getGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.getGameArticles(game_id);
     override def deleteGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.deleteGameArticles(game_id);
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
-    for(game : Long <- Test.getGameIds()) {
-      if (Test.getPreviousGameReviewCount(game) != Test.getGameReviewCount(game))
-        Test.updateReviewCount(game, Test.getGameReviewCount(game));
-      if (Test.getPreviousGameArticleCount(game) != Test.getGameArticleCount(game))
-        Test.updateArticleCount(game, Test.getGameArticleCount(game));
-      if (Test.getAvgScore(game) != Test.calculateAvgScore(game))
-        Test.updateAvgScore(game, Test.calculateAvgScore(game));
-      println(s"Finished updating ${"\""}${Test.getGame(game)._2}${"\""}.");
+    for(game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) <- Test.getGames()) {
+      if (Test.getPreviousGameReviewCount(game._1, game._2) != Test.getGameReviewCount(game._1))
+        Test.updateReviewCount(game._1, game._3.getYear.toString, Test.getGameReviewCount(game._1));
+      if (Test.getPreviousGameArticleCount(game._1, game._2) != Test.getGameArticleCount(game._1))
+        Test.updateArticleCount(game._1, game._3.getYear.toString, Test.getGameArticleCount(game._1));
+      if (Test.getAvgScore(game._1, game._2) != Test.calculateAvgScore(game._1))
+        Test.updateAvgScore(game._1, game._3.getYear.toString, Test.calculateAvgScore(game._1));
+      println(s"Finished updating ${"\""}${game._2}${"\""}.");
     }
     assert(true);
   }
@@ -211,8 +210,9 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "deleteQuery(Int)" should "delete the query with the passed-in query_id from the queries table" in {
+    val name : String = Test.getQueries().find(p => p._1 == 1).get._2;
     Test.deleteQuery(1);
-    assert(true);
+    assert(!Test.queryNameExists(name));
   }
 
   "addGame(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]" should "insert a new game record into the games table if it does not already exist" in {
@@ -238,13 +238,13 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(!Test.gameExists(1, "1000"));
   }
 
-  "getGame(Long)" should "return the game details for the specified game_id, assuming that it exists in our games datastore" in {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(1);
-      assert(result != null);
+  "getGame(Long, String)" should "return the game details for the specified game_id, assuming that it exists in our games datastore" in {
+    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(1, LocalDateTime.now().getYear.toString);
+    assert(result != null);
   }
 
   it should "return null if the game_id does not exist in the games datastore" in {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(-1);
+    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(-1, LocalDateTime.now().getYear.toString);
     assert(result == null);
   }
 
@@ -266,12 +266,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       assert(result.nonEmpty);
   }
 
-  "getMaxGameIdBetween(LocalDateTime, LocalDateTime)" should "return the maximum game_id inside the given period" in {
-    assert(Test.getMaxGameIdBetween(LocalDateTime.parse("2021-12-01T00:00:00"), LocalDateTime.parse("2021-12-31T23:59:59")) == 3);
+  "getMaxGameBetween(LocalDateTime, LocalDateTime)" should "return the maximum game inside the given period" in {
+    assert(Test.getMaxGameBetween(LocalDateTime.parse("2021-12-01T00:00:00"), LocalDateTime.parse("2021-12-31T23:59:59"))._1 == 3);
   }
 
-  it should "return zero if no games were found" in {
-    assert(Test.getMaxGameIdBetween(LocalDateTime.parse("3000-12-01T00:00:00"), LocalDateTime.parse("3000-12-31T23:59:59")) == 0);
+  it should "return null if no games were found" in {
+    assert(Test.getMaxGameBetween(LocalDateTime.parse("3000-12-01T00:00:00"), LocalDateTime.parse("3000-12-31T23:59:59")) == null);
   }
 
   "getGameCountBetween(LocalDateTime, LocalDateTime)" should "return the number of games whose publish_date lie inside the given period" in {
@@ -282,20 +282,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getGameCountBetween(LocalDateTime.parse("3000-12-01T00:00:00"), LocalDateTime.parse("3000-12-31T23:59:59")) == 0);
   }
 
-  "getLatestGames()" should "return the game details with the latest LocalDateTime of games that we have in the database" in {
-    val result : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = Test.getLatestGames();
-    if (result.isEmpty)
-      assert(result.isEmpty);
-    else
-      assert(result.nonEmpty);
+  "getMaxGame()" should "return the game with the largest game_id in our games datastore" in {
+    assert(Test.getMaxGame() != null);
   }
 
-  "getMaxGameId()" should "return the largest game_id in our games datastore" in {
-    assert(Test.getMaxGameId() == 3);
-  }
-
-  "getGameIds()" should "return a list containing the game_ids in our games datastore" in {
-    val games : List[Long] = Test.getGameIds();
+  "getGames()" should "return a list containing all the games in our games datastore" in {
+    val games : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = Test.getGames();
     if (games.isEmpty)
       assert(games.isEmpty);
     else
@@ -314,89 +306,89 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.calculateAvgScore(-1L) == Double.NegativeInfinity);
   }
 
-  "getAvgScore(Long)" should "return the last known average score for a game with the given game_id" in {
-    assert(Test.getAvgScore(1) == 0.0);
+  "getAvgScore(Long, String)" should "return the last known average score for a game with the given game_id and year partition" in {
+    assert(Test.getAvgScore(1, LocalDateTime.now().getYear.toString) == 0.0);
   }
 
   it should "return negative infinity if the game does not exist" in {
-    assert(Test.getAvgScore(-1) == Double.NegativeInfinity);
+    assert(Test.getAvgScore(-1, LocalDateTime.now().getYear.toString) == Double.NegativeInfinity);
   }
 
-  "updateAvgScore(Long, Double)" should "update the game with the provided game_id's average score with the provided average score and return its previous value" in {
-    assert(Test.updateAvgScore(1, 3.2) == 0.0);
-    assert(Test.updateAvgScore(1, 0.0) == 3.2);
+  "updateAvgScore(Long, String, Double)" should "update the game with the provided game_id and year partition's average score with the provided average score and return its previous value" in {
+    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, 3.2) == 0.0);
+    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, 0.0) == 3.2);
   }
 
   it should "should return the previous value if the provided value is greater than 10.0 or less than 0.0" in {
-    assert(Test.updateAvgScore(1, -0.1) == 0.0);
-    assert(Test.updateAvgScore(1, 10.01) == 0.0);
+    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, -0.1) == 0.0);
+    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, 10.01) == 0.0);
   }
 
   it should "return negative infinity for Double if the game id does not exist" in {
-    assert(Test.updateAvgScore(-1, 2.0) == Double.NegativeInfinity);
+    assert(Test.updateAvgScore(-1, LocalDateTime.now().getYear.toString, 2.0) == Double.NegativeInfinity);
   }
 
-  "getPreviousGameArticleCount(Long)" should "return the previously-known article count for a given game" in {
-    assert(Test.getPreviousGameArticleCount(1) == 0);
+  "getPreviousGameArticleCount(Long, String)" should "return the previously-known article count for a given game" in {
+    assert(Test.getPreviousGameArticleCount(1, LocalDateTime.now().getYear.toString) == 0);
   }
 
   it should "return the smallest Long value if the game_id does not exist in our datastore" in {
-    assert(Test.getPreviousGameArticleCount(-1) == Long.MinValue);
+    assert(Test.getPreviousGameArticleCount(-1, LocalDateTime.now().getYear.toString) == Long.MinValue);
   }
 
-  "updateArticleCount(Long, Long)" should "update the game with the provided game_id's article count with the provided newArticleCount and return the previous article_count value" in {
-    assert(Test.updateArticleCount(1, 1) == 0);
-    assert(Test.updateArticleCount(1, 0) == 1);
+  "updateArticleCount(Long, String, Long)" should "update the game with the provided game_id and year partition's article count with the provided newArticleCount and return the previous article_count value" in {
+    assert(Test.updateArticleCount(1, LocalDateTime.now().getYear.toString, 1) == 0);
+    assert(Test.updateArticleCount(1, LocalDateTime.now().getYear.toString, 0) == 1);
   }
 
   it should "return the previous value if the new article count is less than 0" in {
-    assert(Test.updateArticleCount(1, -1) == 0);
+    assert(Test.updateArticleCount(1, LocalDateTime.now().getYear.toString, -1) == 0);
   }
 
   it should "return the smallest possible Long value if the game_id does not exist" in {
-    assert(Test.updateArticleCount(-1, 2) == Long.MinValue);
+    assert(Test.updateArticleCount(-1, LocalDateTime.now().getYear.toString, 2) == Long.MinValue);
   }
 
-  "getPreviousGameReviewCount(Long)" should "return the previously-known review count for a given game" in {
-    assert(Test.getPreviousGameReviewCount(1) == 0);
+  "getPreviousGameReviewCount(Long, String)" should "return the previously-known review count for a given game" in {
+    assert(Test.getPreviousGameReviewCount(1, LocalDateTime.now().getYear.toString) == 0);
   }
 
   it should "return the smallest possible Long value if the game_id does not exist in our datastore" in {
-    assert(Test.getPreviousGameReviewCount(-1) == Long.MinValue);
+    assert(Test.getPreviousGameReviewCount(-1, LocalDateTime.now().getYear.toString) == Long.MinValue);
   }
 
-  "updateReviewCount(Long, Long)" should "update the game with the provided game_id's review count with the provided newReviewCount and return the previous review_count value" in {
-    assert(Test.updateReviewCount(1, 1) == 0);
-    assert(Test.updateReviewCount(1, 0) == 1);
+  "updateReviewCount(Long, String, Long)" should "update the game with the provided game_id and year partition review count with the provided newReviewCount and return the previous review_count value" in {
+    assert(Test.updateReviewCount(1, LocalDateTime.now().getYear.toString, 1) == 0);
+    assert(Test.updateReviewCount(1, LocalDateTime.now().getYear.toString, 0) == 1);
   }
 
   it should "return the previous value if the new review count is less than 0" in {
-    assert(Test.updateReviewCount(1, -1) == 0);
+    assert(Test.updateReviewCount(1, LocalDateTime.now().getYear.toString, -1) == 0);
   }
 
   it should "return the smallest possible Long value if the game_id does not exist" in {
-    assert(Test.updateReviewCount(-1, 2) == Long.MinValue);
+    assert(Test.updateReviewCount(-1, LocalDateTime.now().getYear.toString, 2) == Long.MinValue);
   }
 
-  "deleteGame(Long)" should "return the details of the game that is removed from the datastore" in {
-    assert(Test.deleteGame(3) != null);
-    assert(Test.getGame(3) == null);
+  "deleteGame(Long, String)" should "return the details of the game that is removed from the datastore" in {
+    assert(Test.deleteGame(3, LocalDateTime.now().getYear.toString) != null);
+    assert(Test.getGame(3, LocalDateTime.now().getYear.toString) == null);
   }
 
   it should "return null if no game was deleted" in {
-    assert(Test.deleteGame(3) == null);
+    assert(Test.deleteGame(3, LocalDateTime.now().getYear.toString) == null);
   }
 
-  "deleteGames(List[Long])" should "return the game details of the games removed from the datastore" in {
-    assert(Test.deleteGames(List(1, 2)).nonEmpty);
+  "deleteGames(Map[Long, String])" should "return the game details of the games removed from the datastore" in {
+    assert(Test.deleteGames(Map(1L -> LocalDateTime.now().getYear.toString, 2L -> LocalDateTime.now().getYear.toString)).nonEmpty);
   }
 
   it should "return an empty list (or a list smaller than the number of game_ids) if games do not exist" in {
-    assert(Test.deleteGames(List(-1, -2 ,-3)).isEmpty);
+    assert(Test.deleteGames(Map(-1L -> LocalDateTime.now().getYear.toString, -2L -> LocalDateTime.now().getYear.toString,-3L -> LocalDateTime.now().getYear.toString)).isEmpty);
   }
 
-  "getMaxGameId()" should "return zero if no game was found" in {
-    assert(Test.getMaxGameId() == 0);
+  "getMaxGame()" should "return null if no game was found" in {
+    assert(Test.getMaxGame() == null);
   }
 
   "getGameCount()" should "return zero if no games were found" in {
@@ -419,7 +411,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.reviewExists(3, LocalDateTime.now().getYear.toString));
   }
 
-  "reviewExists(Long, String)" should "return true when it finds a review with the given review_id in our reviews datastore within the given year partition" in {
+  "reviewExists(Long, String)" should "return true when it finds a review with the given review_id and year in our reviews datastore within the given year partition" in {
     assert(Test.reviewExists(1, LocalDateTime.now().getYear.toString));
   }
 
@@ -435,12 +427,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       assert(results.nonEmpty);
   }
 
-  "getReview(Long)" should "return the details for a review with the given review_id" in {
-    assert(Test.getReview(6112628) != null);
+  "getReview(Long, String)" should "return the details for a review with the given review_id and year in the given year" in {
+    assert(Test.getReview(6112628, LocalDateTime.now().getYear.toString) != null);
   }
 
   it should "return null if a review does not exist with the given review_id" in {
-    assert(Test.getReview(-1) == null);
+    assert(Test.getReview(-1, LocalDateTime.now().getYear.toString) == null);
   }
 
   "getReviewCount()" should "return the total number of reviews in our datastore" in {
@@ -488,12 +480,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(!Test.articleExists(-1, LocalDateTime.now().getYear.toString));
   }
 
-  "getArticle(Long)" should "return the details of the article with the given article_id" in {
-    assert(Test.getArticle(6071468) != null);
+  "getArticle(Long, String)" should "return the details of the article within the given year with the given article_id" in {
+    assert(Test.getArticle(6071468, LocalDateTime.now().getYear.toString) != null);
   }
 
   it should "return null if an article with the given id does not exist" in {
-    assert(Test.getArticle(-1) == null);
+    assert(Test.getArticle(-1, LocalDateTime.now().getYear.toString) == null);
   }
 
   "getGameArticleCount(Long)" should "return the number of articles a game has in the articles datastore" in {

@@ -10,8 +10,8 @@ class TestAPIFetcher extends AnyFlatSpec with should.Matchers {
     override def getGame(game_name: String): Unit = super.getGame(game_name);
     override def getGamesLike(game_name: String): Unit = super.getGamesLike(game_name);
     override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): Unit = super.getGamesBetween(startDate, endDate);
-    override def getGameReviews(game_id: Long): Unit = super.getGameReviews(game_id);
-    override def getGameArticles(game_id: Long): Unit = super.getGameArticles(game_id);
+    override def getGameReviews(game_id: Long, year : String): Unit = super.getGameReviews(game_id, year);
+    override def getGameArticles(game_id: Long, year : String): Unit = super.getGameArticles(game_id, year);
     override def getAllReviews(): Unit = super.getAllReviews();
     override def outputFindings(): Unit = super.outputFindings();
     override def outputFinding(str: String): Unit = super.outputFinding(str);
@@ -65,29 +65,30 @@ class TestAPIFetcher extends AnyFlatSpec with should.Matchers {
     Test.getGamesLike("Tomb Raider");
   }
 
-  "getGamesBetween" should "go out and fetch missing game details, articles, and reviews for the games whose release_date lie between startDate and endDate" in {
+  "getGamesBetween(LocalDateTime, LocalDateTime)" should "go out and fetch missing game details, articles, and reviews for the games whose release_date lie between startDate and endDate" in {
     Test.outputFindings();
-    Test.getGamesBetween(LocalDateTime.parse("1995-01-01T00:00:00"), LocalDateTime.parse("1995-12-31T23:59:59"));
+    Test.summaryOutput();
+    Test.getGamesBetween(LocalDateTime.parse("2011-01-01T00:00:00"), LocalDateTime.parse("2021-12-31T23:59:59"));
   }
 
-  "getGameReviews(Long)" should "go out and fetch missing reviews for the given game_id" in {
+  "getGameReviews(Long, String)" should "go out and fetch missing reviews for the given game_id" in {
     Test.outputFindings();
-    Test.getGameReviews(1L);
-  }
-
-  it should "error and do nothing if the game does not exist in our games datastore" in {
-    Test.outputFindings();
-    Test.getGameReviews(-1);
-  }
-
-  "getGameArticles(Long)" should "go out and fetch missing articles for the given game_id" in {
-    Test.outputFindings();
-    Test.getGameArticles(1L);
+    Test.getGameReviews(1L, LocalDateTime.now().getYear.toString);
   }
 
   it should "error and do nothing if the game does not exist in our games datastore" in {
     Test.outputFindings();
-    Test.getGameArticles(-1);
+    Test.getGameReviews(-1, LocalDateTime.now().getYear.toString);
+  }
+
+  "getGameArticles(Long, String)" should "go out and fetch missing articles for the given game_id and partition year" in {
+    Test.outputFindings();
+    Test.getGameArticles(1L, LocalDateTime.now().getYear.toString);
+  }
+
+  it should "error and do nothing if the game does not exist in our games datastore" in {
+    Test.outputFindings();
+    Test.getGameArticles(-1, LocalDateTime.now().getYear.toString);
   }
 
   "getAllReviews()" should "go out and fetch all missing reviews from Gamespot's API" in {

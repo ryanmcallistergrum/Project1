@@ -101,7 +101,7 @@ class APIFetcher extends GamespotAPI {
     val gameJson : Value = ujson.read(getResults());
     if (gameJson("error").str.equals("OK")) {
       if(gameJson("number_of_total_results").num.toLong == 1 && running) {
-        if (!HiveDBManager.gameExists(gameJson("results")(0)("id").num.toLong, gameJson("results")(0)("name").str.replace("'", "''"))) {
+        if (!HiveDBManager.gameExists(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString)) {
           try {
             val genres: ArrayBuffer[String] = ArrayBuffer();
             for (j: Int <- gameJson("results")(0)("genres").arr.indices)
@@ -128,7 +128,7 @@ class APIFetcher extends GamespotAPI {
             );
 
 
-            val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong);
+            val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString);
             if (running && output) {
               if (running && !summarize)
                 outputFinding(s"Added new game: $game");
@@ -142,14 +142,14 @@ class APIFetcher extends GamespotAPI {
           }
         }
 
-        val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong);
+        val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString);
 
 
         // Now get its reviews.
-        getGameReviews(game._1);
+        getGameReviews(game._1, game._3.getYear.toString);
 
         // Now get its articles.
-        getGameArticles(game._1);
+        getGameArticles(game._1, game._3.getYear.toString);
 
       } else {
         outputFinding(s"Game ID $game_id not found in Gamespot API! Stopping instance...");
@@ -332,7 +332,7 @@ class APIFetcher extends GamespotAPI {
       outputFinding("Instance stopped! Exiting...");
   }
 
-  def getGameReviews(game_id : Long) : Unit = {
+  def getGameReviews(game_id : Long, year : String) : Unit = {
     while (running && getAPIKey().isEmpty)
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
@@ -349,7 +349,7 @@ class APIFetcher extends GamespotAPI {
       }
 
     if (running) {
-      val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(game_id);
+      val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(game_id, year);
 
       if (running && game != null) {
         Thread.sleep(1000)
@@ -379,7 +379,7 @@ class APIFetcher extends GamespotAPI {
                 );
 
                 if (output && !summarize) {
-                  val review: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = HiveDBManager.getReview(reviewJson("results")(i)("id").num.toLong);
+                  val review: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = HiveDBManager.getReview(reviewJson("results")(i)("id").num.toLong, LocalDateTime.parse(reviewJson("results")(i)("publish_date").str.replace(" ", "T")).getYear.toString);
                   outputFinding(s"Added new review for ${"\""}${game._2}${"\""}: $review");
                 }
               } catch {
@@ -406,11 +406,11 @@ class APIFetcher extends GamespotAPI {
             }
           }
 
-          if (running && output && summarize && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1) > 0)
-            outputFinding(s"Added ${reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1)} reviews to ${"\""}${game._2}${"\""}.");
-          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game_id) > 0) {
-            HiveDBManager.updateReviewCount(game._1, HiveDBManager.getGameReviewCount(game._1))
-            HiveDBManager.updateAvgScore(game._1, HiveDBManager.calculateAvgScore(game._1));
+          if (running && output && summarize && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString) > 0)
+            outputFinding(s"Added ${reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString)} reviews to ${"\""}${game._2}${"\""}.");
+          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString) > 0) {
+            HiveDBManager.updateReviewCount(game._1, game._3.getYear.toString, HiveDBManager.getGameReviewCount(game._1))
+            HiveDBManager.updateAvgScore(game._1, game._3.getYear.toString, HiveDBManager.calculateAvgScore(game._1));
           }
         } else {
           outputFinding("Error while fetching from API! " + reviewJson("error").str);
@@ -424,7 +424,7 @@ class APIFetcher extends GamespotAPI {
       outputFinding("Instance stopped! Exiting...");
   }
 
-  def getGameArticles(game_id : Long) : Unit = {
+  def getGameArticles(game_id : Long, year : String) : Unit = {
     while (running && getAPIKey().isEmpty)
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
@@ -441,7 +441,7 @@ class APIFetcher extends GamespotAPI {
       }
 
     if (running) {
-      val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(game_id);
+      val game: (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = HiveDBManager.getGame(game_id, year);
 
       if (running && game != null) {
         Thread.sleep(1000);
@@ -477,7 +477,7 @@ class APIFetcher extends GamespotAPI {
                 );
 
                 if (output && !summarize) {
-                  val article: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = HiveDBManager.getArticle(articleJson("results")(i)("id").num.toLong);
+                  val article: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = HiveDBManager.getArticle(articleJson("results")(i)("id").num.toLong, LocalDateTime.parse(articleJson("results")(i)("publish_date").str.replace(" ", "T")).getYear.toString);
                   outputFinding(s"Added new article for ${"\""}${game._2}${"\""}: $article");
                 }
               } catch {
@@ -504,10 +504,10 @@ class APIFetcher extends GamespotAPI {
             }
           }
 
-          if (running && output && summarize && articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1) > 0)
-            outputFinding(s"Added ${articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1)} articles to ${"\""}${game._2}${"\""}.");
-          if (running && articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1) > 0)
-            HiveDBManager.updateArticleCount(game._1, HiveDBManager.getGameArticleCount(game._1));
+          if (running && output && summarize && articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString) > 0)
+            outputFinding(s"Added ${articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString)} articles to ${"\""}${game._2}${"\""}.");
+          if (running && articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString) > 0)
+            HiveDBManager.updateArticleCount(game._1, game._3.getYear.toString, HiveDBManager.getGameArticleCount(game._1));
         } else {
           outputFinding("Error while fetching from API! " + articleJson("error").str);
           running = false;
@@ -551,28 +551,30 @@ class APIFetcher extends GamespotAPI {
           var i: Int = 0;
           while (i < reviewJson("number_of_page_results").num.toInt && running) {
             try {
-              HiveDBManager.addReview(
-                reviewJson("results")(i)("id").num.toLong,
-                reviewJson("results")(i)("authors").str.replace("'", "''").replace("<", "\\<"),
-                reviewJson("results")(i)("title").str.replace("'", "''").replace("<", "\\<"),
-                reviewJson("results")(i)("deck").str.replace("'", "''").replace("<", "\\<"),
-                reviewJson("results")(i)("lede").str.replace("'", "''").replace("<", "\\<"),
-                reviewJson("results")(i)("body").str.replace("'", "''").replace("<", "\\<"),
-                LocalDateTime.parse(reviewJson("results")(i)("publish_date").str.replace(" ", "T")),
-                LocalDateTime.parse(reviewJson("results")(i)("update_date").str.replace(" ", "T")),
-                reviewJson("results")(i)("score").str.toDouble,
-                reviewJson("results")(i)("review_type").str,
-                reviewJson("results")(i)("game")("id").num.toLong
-              );
+              if (!HiveDBManager.reviewExists(reviewJson("results")(i)("id").num.toLong, LocalDateTime.parse(reviewJson("results")(i)("publish_date").str.replace(" ", "T")).getYear.toString)) {
+                HiveDBManager.addReview(
+                  reviewJson("results")(i)("id").num.toLong,
+                  reviewJson("results")(i)("authors").str.replace("'", "''").replace("<", "\\<"),
+                  reviewJson("results")(i)("title").str.replace("'", "''").replace("<", "\\<"),
+                  reviewJson("results")(i)("deck").str.replace("'", "''").replace("<", "\\<"),
+                  reviewJson("results")(i)("lede").str.replace("'", "''").replace("<", "\\<"),
+                  reviewJson("results")(i)("body").str.replace("'", "''").replace("<", "\\<"),
+                  LocalDateTime.parse(reviewJson("results")(i)("publish_date").str.replace(" ", "T")),
+                  LocalDateTime.parse(reviewJson("results")(i)("update_date").str.replace(" ", "T")),
+                  reviewJson("results")(i)("score").str.toDouble,
+                  reviewJson("results")(i)("review_type").str,
+                  reviewJson("results")(i)("game")("id").num.toLong
+                )
 
-              if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(reviewJson("results")(i)("id").num.toLong) > 0) {
-                HiveDBManager.updateReviewCount(reviewJson("results")(i)("id").num.toLong, HiveDBManager.getGameReviewCount(reviewJson("results")(i)("id").num.toLong))
-                HiveDBManager.updateAvgScore(reviewJson("results")(i)("id").num.toLong, HiveDBManager.calculateAvgScore(reviewJson("results")(i)("id").num.toLong));
-              }
+                /*if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(reviewJson("results")(i)("id").num.toLong) > 0) {
+                  HiveDBManager.updateReviewCount(reviewJson("results")(i)("id").num.toLong, HiveDBManager.getGameReviewCount(reviewJson("results")(i)("id").num.toLong))
+                  HiveDBManager.updateAvgScore(reviewJson("results")(i)("id").num.toLong, HiveDBManager.calculateAvgScore(reviewJson("results")(i)("id").num.toLong));
+                }*/
 
-              if (output && !summarize) {
-                val review: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = HiveDBManager.getReview(reviewJson("results")(i)("id").num.toLong);
-                outputFinding(s"${reviewOffset + i}: Added new review for ${"\""}${reviewJson("results")(i)("game")("name").str}${"\""}: $review");
+                if (output && !summarize) {
+                  val review: (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = HiveDBManager.getReview(reviewJson("results")(i)("id").num.toLong, LocalDateTime.parse(reviewJson("results")(i)("publish_date").str.replace(" ", "T")).getYear.toString);
+                  outputFinding(s"${reviewOffset + i}: Added new review for ${"\""}${reviewJson("results")(i)("game")("name").str}${"\""}: $review");
+                }
               }
             } catch {
               case nse : NoSuchElementException => {
