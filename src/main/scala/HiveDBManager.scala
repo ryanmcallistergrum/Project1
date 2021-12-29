@@ -316,7 +316,7 @@ class HiveDBManager extends HiveConnection {
 
   def gameExists(game_id : Long, year : String) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.games where game_id = ${game_id}L and year = '${year}' limit 1");
-    return df.isEmpty;
+    return !df.isEmpty;
   }
 
   def getGame(game_id : Long) : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = {
@@ -662,7 +662,7 @@ class HiveDBManager extends HiveConnection {
 
   def reviewExists(review_id : Long, year : String) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L and year = '${year}' limit 1");
-    return df.isEmpty;
+    return !df.isEmpty;
   }
 
   def getReview(review_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = {
@@ -785,7 +785,7 @@ class HiveDBManager extends HiveConnection {
 
   def articleExists(article_id : Long, year : String) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L and year = '${year}' limit 1");
-   return df.isEmpty;
+   return !df.isEmpty;
   }
 
   def getArticle(article_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = {
@@ -1166,7 +1166,7 @@ object HiveDBManager extends HiveConnection {
 
   def gameExists(game_id : Long, year : String) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.games where game_id = ${game_id}L and year = '${year}' limit 1");
-    return df.isEmpty;
+    return !df.isEmpty;
   }
 
   def getGame(game_id : Long) : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = {
@@ -1512,7 +1512,7 @@ object HiveDBManager extends HiveConnection {
 
   def reviewExists(review_id : Long, year : String) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L and year = '${year}' limit 1");
-    return df.isEmpty;
+    return !df.isEmpty;
   }
 
   def getReview(review_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = {
@@ -1635,7 +1635,7 @@ object HiveDBManager extends HiveConnection {
 
   def articleExists(article_id : Long, year : String) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L and year = '${year}' limit 1");
-    return df.isEmpty;
+    return !df.isEmpty;
   }
 
   def getArticle(article_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = {
