@@ -661,6 +661,31 @@ class HiveDBManager extends HiveConnection {
     return false;
   }
 
+  def getReview(review_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = {
+    var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = null;
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0)) {
+        val row : Row = df.take(1)(0);
+        val tuple : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = (
+          row.getLong(0),
+          row.getString(1),
+          row.getString(2),
+          row.getString(3),
+          row.getString(4),
+          row.getString(5),
+          row.getTimestamp(6).toLocalDateTime,
+          row.getTimestamp(7).toLocalDateTime,
+          row.getDouble(8),
+          row.getString(9),
+          row.getLong(10)
+        );
+        result = tuple;
+      }
+
+    return result;
+  }
+
   def getGameReviews(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = {
     var result : ArrayBuffer[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where game_id = ${game_id}L");
@@ -702,23 +727,7 @@ class HiveDBManager extends HiveConnection {
     return 0L;
   }
 
-  def getLatestReviewDate() : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), "select max(publish_date) from p1.reviews");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
-  }
-
-  def getLatestGameReviewDate(game_id : Long) : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), s"select max(publish_date) from p1.reviews where game_id = ${game_id}L");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
-  }
-
-  def deleteGameReviews(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = {
+    def deleteGameReviews(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = {
     val result : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = getGameReviews(game_id);
 
     val spark : SparkSession = connect();
@@ -778,6 +787,31 @@ class HiveDBManager extends HiveConnection {
     return false;
   }
 
+  def getArticle(article_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = {
+    var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = null;
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0)) {
+        val row : Row = df.take(1)(0);
+        val categories : Map[Long, String] = row.get(8).asInstanceOf[Map[Long, String]];
+        val tuple : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = (
+          row.getLong(0),
+          row.getString(1),
+          row.getString(2),
+          row.getString(3),
+          row.getString(4),
+          row.getString(5),
+          row.getTimestamp(6).toLocalDateTime,
+          row.getTimestamp(7).toLocalDateTime,
+          row.get(8).asInstanceOf[Map[Long, String]],
+          row.getLong(9)
+        );
+        result = tuple;
+      }
+
+    return result;
+  }
+
   def getGameArticleCount(game_id : Long) : Long = {
     val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.articles where game_id = $game_id");
     if (!df.isEmpty)
@@ -811,23 +845,7 @@ class HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
-  def getLatestGameArticleDate(game_id : Long) : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), s"select max(publish_date) from p1.articles where game_id = ${game_id}L");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
-  }
-
-  def getLatestArticleDate() : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), "select max(publish_date) from p1.articles");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
-  }
-
-  def deleteGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {
+    def deleteGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {
     val result : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = getGameArticles(game_id);
     val spark : SparkSession = connect();
     createArticlesCopy("p1.articlesTemp");
@@ -1492,6 +1510,31 @@ object HiveDBManager extends HiveConnection {
     return false;
   }
 
+  def getReview(review_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = {
+    var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = null;
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0)) {
+        val row : Row = df.take(1)(0);
+        val tuple : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = (
+          row.getLong(0),
+          row.getString(1),
+          row.getString(2),
+          row.getString(3),
+          row.getString(4),
+          row.getString(5),
+          row.getTimestamp(6).toLocalDateTime,
+          row.getTimestamp(7).toLocalDateTime,
+          row.getDouble(8),
+          row.getString(9),
+          row.getLong(10)
+        );
+        result = tuple;
+      }
+
+    return result;
+  }
+
   def getGameReviews(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = {
     var result : ArrayBuffer[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where game_id = ${game_id}L");
@@ -1531,22 +1574,6 @@ object HiveDBManager extends HiveConnection {
       if (!df.take(1)(0).isNullAt(0))
         return df.take(1)(0).getLong(0);
     return 0L;
-  }
-
-  def getLatestReviewDate() : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), "select max(publish_date) from p1.reviews");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
-  }
-
-  def getLatestGameReviewDate(game_id : Long) : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), s"select max(publish_date) from p1.reviews where game_id = ${game_id}L");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
   }
 
   def deleteGameReviews(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = {
@@ -1609,6 +1636,31 @@ object HiveDBManager extends HiveConnection {
     return false;
   }
 
+  def getArticle(article_id : Long) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = {
+    var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = null;
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0)) {
+        val row : Row = df.take(1)(0);
+        val categories : Map[Long, String] = row.get(8).asInstanceOf[Map[Long, String]];
+        val tuple : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = (
+          row.getLong(0),
+          row.getString(1),
+          row.getString(2),
+          row.getString(3),
+          row.getString(4),
+          row.getString(5),
+          row.getTimestamp(6).toLocalDateTime,
+          row.getTimestamp(7).toLocalDateTime,
+          row.get(8).asInstanceOf[Map[Long, String]],
+          row.getLong(9)
+        );
+        result = tuple;
+      }
+
+    return result;
+  }
+
   def getGameArticleCount(game_id : Long) : Long = {
     val df : DataFrame = executeQuery(connect(), s"select count(*) from p1.articles where game_id = $game_id");
     if (!df.isEmpty)
@@ -1640,22 +1692,6 @@ object HiveDBManager extends HiveConnection {
         }
 
     return result.toList;
-  }
-
-  def getLatestGameArticleDate(game_id : Long) : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), s"select max(publish_date) from p1.articles where game_id = ${game_id}L");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
-  }
-
-  def getLatestArticleDate() : LocalDateTime = {
-    val df : DataFrame = executeQuery(connect(), "select max(publish_date) from p1.articles");
-    if (!df.isEmpty)
-      if (!df.take(1)(0).isNullAt(0))
-        return df.take(1)(0).getTimestamp(0).toLocalDateTime;
-    return null;
   }
 
   def deleteGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {

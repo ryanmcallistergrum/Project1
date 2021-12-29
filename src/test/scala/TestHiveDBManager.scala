@@ -51,19 +51,17 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def addReview(review_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, score: Double, review_type: String, game_id: Long): Unit = super.addReview(review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id);
     override def addReviews(reviews: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]): Unit = super.addReviews(reviews);
     override def reviewExists(review_id: Long): Boolean = super.reviewExists(review_id);
+    override def getReview(review_id: Long): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = super.getReview(review_id);
     override def getGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.getGameReviews(game_id);
     override def getReviewCount(): Long = super.getReviewCount();
     override def getGameReviewCount(game_id: Long): Long = super.getGameReviewCount(game_id);
-    override def getLatestReviewDate(): LocalDateTime = super.getLatestReviewDate();
-    override def getLatestGameReviewDate(game_id: Long): LocalDateTime = super.getLatestGameReviewDate(game_id);
     override def deleteGameReviews(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)] = super.deleteGameReviews(game_id);
     override def addArticle(article_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, categories: Map[Long, String], game_id: Long): Unit = super.addArticle(article_id, authors, title, deck, lede, body, publish_date, update_date, categories, game_id);
     override def addArticles(articles: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)]): Unit = super.addArticles(articles);
     override def articleExists(article_id: Long): Boolean = super.articleExists(article_id);
+    override def getArticle(article_id: Long): (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = super.getArticle(article_id);
     override def getGameArticleCount(game_id: Long): Long = super.getGameArticleCount(game_id);
     override def getGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.getGameArticles(game_id);
-    override def getLatestGameArticleDate(game_id: Long): LocalDateTime = super.getLatestGameArticleDate(game_id);
-    override def getLatestArticleDate(): LocalDateTime = super.getLatestArticleDate();
     override def deleteGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.deleteGameArticles(game_id);
   }
 
@@ -75,7 +73,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "executeQuery(SparkSession, String)" should "be for TESTING ONLY!" in {
-    val df : DataFrame = Test.executeQuery(Test.connect(), "select game_id, name, release_date, articles_api_url, article_count, reviews_api_url, review_count from p1.games order by game_id");
+    val df : DataFrame = Test.executeQuery(Test.connect(), "select article_id from p1.articles limit 1");
     df.show(Int.MaxValue, false);
     assert(true);
   }
@@ -422,6 +420,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       assert(results.nonEmpty);
   }
 
+  "getReview(Long)" should "return the details for a review with the given review_id" in {
+    assert(Test.getReview(6112628) != null);
+  }
+
+  it should "return null if a review does not exist with the given review_id" in {
+    assert(Test.getReview(-1) == null);
+  }
+
   "getReviewCount()" should "return the total number of reviews in our datastore" in {
     assert(Test.getReviewCount() >= 0);
   }
@@ -432,23 +438,6 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   it should "return zero for a game_id that does not have any reviews or does not exist" in {
     assert(Test.getGameReviewCount(-1L) == 0);
-  }
-
-  "getLatestReviewDate()" should "return the latest publish_date in our reviews datastore, else null if none exist" in {
-    val result : LocalDateTime = Test.getLatestReviewDate();
-    if (result != null)
-      assert(result != null);
-    else
-      assert(result == null);
-  }
-
-  "getLatestGameReviewDate(Long)" should "return the latest publish_date for a review for the given game_id" in {
-    assert(Test.getLatestGameReviewDate(1) != null);
-  }
-
-  it should "return null if the game_id does not exist in reviews or the game does not have any reviews" in {
-    assert(Test.getLatestGameReviewDate(-1) == null);
-    assert(Test.getLatestGameReviewDate(2) == null);
   }
 
   "deleteGameReviews(Long)" should "return a list of all the reviews removed from the reviews datastore for the given game_id" in {
@@ -466,10 +455,11 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "addArticles(List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)])" should "insert the passed-in articles into the articles datastore" in {
-    Test.addArticles(List(
-      (2, "test1", "test1", "test1", "test1", "test1", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1),
-      (3, "test2", "test2", "test2", "test2", "test2", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1)
-    )
+    Test.addArticles(
+      List(
+        (2, "test1", "test1", "test1", "test1", "test1", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1),
+        (3, "test2", "test2", "test2", "test2", "test2", LocalDateTime.now(), LocalDateTime.now(), Map((1L -> "test1"), (2L -> "test2")), 1)
+      )
     );
     assert(Test.articleExists(2));
     assert(Test.articleExists(3));
@@ -481,6 +471,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   it should "return false for a non-existent article_id" in {
     assert(!Test.articleExists(-1));
+  }
+
+  "getArticle(Long)" should "return the details of the article with the given article_id" in {
+    assert(Test.getArticle(6071468) != null);
+  }
+
+  it should "return null if an article with the given id does not exist" in {
+    assert(Test.getArticle(-1) == null);
   }
 
   "getGameArticleCount(Long)" should "return the number of articles a game has in the articles datastore" in {
@@ -500,30 +498,13 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getGameArticles(-1).isEmpty);
   }
 
-  "getLatestGameArticleDate(Long)" should "return the latest publish_date for articles for the given game_id" in {
-    assert(Test.getLatestGameArticleDate(1) != null);
-  }
-
-  it should "return null if the game_id does not have articles or the game_id does not exist in the articles datastore" in {
-    assert(Test.getLatestGameArticleDate(2) == null);
-    assert(Test.getLatestGameArticleDate(-1) == null);
-  }
-
-  "getLatestArticleDate()" should "return the latest publish_date in the articles datastore" in {
-    assert(Test.getLatestArticleDate() != null);
-  }
-
   "deleteGameArticles(Long)" should "return a list of removed articles for the specified game_id from the articles datastore" in {
     assert(Test.deleteGameArticles(1).nonEmpty);
-    assert(Test.getLatestGameArticleDate(1) == null);
+    assert(Test.getGameArticles(1).isEmpty);
   }
 
   it should "return an empty list of articles if the game_id has no articles or the game_id does not exist in the articles datastore" in {
     assert(Test.deleteGameArticles(2).isEmpty);
     assert(Test.deleteGameArticles(-1).isEmpty);
-  }
-
-  "getLatestArticleDate()" should "return null if there are no articles" in {
-    assert(Test.getLatestArticleDate() == null);
   }
 }
