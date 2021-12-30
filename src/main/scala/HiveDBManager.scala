@@ -1734,7 +1734,7 @@ object HiveDBManager extends HiveConnection {
         s"$categoriesString"
     );
     executeDML(connect(),
-      s"insert into p1.articles partition(year=${publish_date.getYear}) select " +
+      s"insert into p1.articlesByYear partition(year=${publish_date.getYear}) select " +
         s"${article_id}L, " +
         s"'$authors', " +
         s"'$title', " +
