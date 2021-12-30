@@ -72,7 +72,7 @@ class HiveDBManager extends HiveConnection {
     );
   }
 
-  private def createArticlesCopy(table_name : String) : Unit = {
+  protected def createArticlesCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -84,18 +84,14 @@ class HiveDBManager extends HiveConnection {
           "body String, " +
           "publish_date Timestamp, " +
           "update_date Timestamp, " +
-          "categories map<BigInt, String>, " +
-          "game_id BigInt" +
+          "categories map<BigInt, String> " +
         ") " +
-        "partitioned by (year String) " +
-        "clustered by (game_id) " +
-        "sorted by (publish_date) " +
-        "into 10000 buckets " +
+        "partitioned by (game_id BIGINT) " +
         "stored as orc"
     );
   }
 
-  private def createReviewsCopy(table_name : String) : Unit = {
+  protected def createReviewsCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -108,10 +104,9 @@ class HiveDBManager extends HiveConnection {
           "publish_date Timestamp, " +
           "update_date Timestamp, " +
           "score Double, " +
-          "review_type String, " +
-          "game_id BigInt" +
+          "review_type String " +
         ") " +
-        "partitioned by (year String) " +
+        "partitioned by (game_id BIGINT) " +
         "clustered by (review_type) " +
         "sorted by (publish_date) " +
         "into 3 buckets " +
@@ -620,7 +615,7 @@ class HiveDBManager extends HiveConnection {
     val publishDate : String = publish_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     val updateDate : String = update_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     executeDML(connect(),
-      s"insert into p1.reviews partition(year='${publish_date.getYear}') select " +
+      s"insert into p1.reviews partition(game_id=$game_id) select " +
         s"${review_id}L, " +
         s"'$authors', " +
         s"'$title', " +
@@ -630,8 +625,7 @@ class HiveDBManager extends HiveConnection {
         s"to_timestamp('$publishDate'), " +
         s"to_timestamp('$updateDate'), " +
         s"$score, " +
-        s"'$review_type', " +
-        s"${game_id}L"
+        s"'$review_type'"
     );
   }
 
@@ -745,7 +739,7 @@ class HiveDBManager extends HiveConnection {
     val updateDate : String = update_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
     executeDML(connect(),
-      s"insert into p1.articles partition(year='${publish_date.getYear}') select " +
+      s"insert into p1.articles partition(game_id=$game_id) select " +
         s"${article_id}L, " +
         s"'$authors', " +
         s"'$title', " +
@@ -754,8 +748,7 @@ class HiveDBManager extends HiveConnection {
         s"'$body', " +
         s"to_timestamp('$publishDate'), " +
         s"to_timestamp('$updateDate'), " +
-        s"$categoriesString, " +
-        s"${game_id}L"
+        s"$categoriesString"
     );
   }
 
@@ -838,7 +831,7 @@ class HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
-    def deleteGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {
+  def deleteGameArticles(game_id : Long) : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = {
     val result : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = getGameArticles(game_id);
     val spark : SparkSession = connect();
     createArticlesCopy("p1.articlesTemp");
@@ -914,7 +907,7 @@ object HiveDBManager extends HiveConnection {
     );
   }
 
-  private def createArticlesCopy(table_name : String) : Unit = {
+  protected def createArticlesCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -926,18 +919,14 @@ object HiveDBManager extends HiveConnection {
         "body String, " +
         "publish_date Timestamp, " +
         "update_date Timestamp, " +
-        "categories map<BigInt, String>, " +
-        "game_id BigInt" +
+        "categories map<BigInt, String> " +
         ") " +
-        "partitioned by (year String) " +
-        "clustered by (game_id) " +
-        "sorted by (publish_date) " +
-        "into 10000 buckets " +
+        "partitioned by (game_id BIGINT) " +
         "stored as orc"
     );
   }
 
-  private def createReviewsCopy(table_name : String) : Unit = {
+  protected def createReviewsCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -950,10 +939,9 @@ object HiveDBManager extends HiveConnection {
         "publish_date Timestamp, " +
         "update_date Timestamp, " +
         "score Double, " +
-        "review_type String, " +
-        "game_id BigInt" +
+        "review_type String " +
         ") " +
-        "partitioned by (year String) " +
+        "partitioned by (game_id BIGINT) " +
         "clustered by (review_type) " +
         "sorted by (publish_date) " +
         "into 3 buckets " +
@@ -1462,7 +1450,7 @@ object HiveDBManager extends HiveConnection {
     val publishDate : String = publish_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     val updateDate : String = update_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     executeDML(connect(),
-      s"insert into p1.reviews partition(year='${publish_date.getYear}') select " +
+      s"insert into p1.reviews partition(game_id=$game_id) select " +
         s"${review_id}L, " +
         s"'$authors', " +
         s"'$title', " +
@@ -1472,8 +1460,7 @@ object HiveDBManager extends HiveConnection {
         s"to_timestamp('$publishDate'), " +
         s"to_timestamp('$updateDate'), " +
         s"$score, " +
-        s"'$review_type', " +
-        s"${game_id}L"
+        s"'$review_type'"
     );
   }
 
@@ -1587,7 +1574,7 @@ object HiveDBManager extends HiveConnection {
     val updateDate : String = update_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
     executeDML(connect(),
-      s"insert into p1.articles partition(year='${publish_date.getYear}') select " +
+      s"insert into p1.articles partition(game_id=$game_id) select " +
         s"${article_id}L, " +
         s"'$authors', " +
         s"'$title', " +
@@ -1596,8 +1583,7 @@ object HiveDBManager extends HiveConnection {
         s"'$body', " +
         s"to_timestamp('$publishDate'), " +
         s"to_timestamp('$updateDate'), " +
-        s"$categoriesString, " +
-        s"${game_id}L"
+        s"$categoriesString"
     );
   }
 

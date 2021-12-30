@@ -11,6 +11,8 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def executeQuery(spark: SparkSession, sql: String): DataFrame = super.executeQuery(spark, sql);
     override def showQuery(spark: SparkSession, sql: String): Unit = super.showQuery(spark, sql);
     override def createDB() : Unit = super.createDB();
+    override def createReviewsCopy(table_name: String): Unit = super.createReviewsCopy(table_name);
+    override def createArticlesCopy(table_name: String): Unit = super.createArticlesCopy(table_name);
     override def getNextUserId(): Int = super.getNextUserId()
     override def getUsers(): List[(Int, String, String, Boolean)] = super.getUsers();
     override def authenticate(username: String, password: String, isAdmin: Boolean): Int = super.authenticate(username, password, isAdmin);
@@ -67,15 +69,36 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
     for(game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) <- Test.getGames()) {
-      if (Test.getPreviousGameReviewCount(game._1, game._2) != Test.getGameReviewCount(game._1))
-        Test.updateReviewCount(game._1, game._3.getYear.toString, Test.getGameReviewCount(game._1));
-      if (Test.getPreviousGameArticleCount(game._1, game._2) != Test.getGameArticleCount(game._1))
-        Test.updateArticleCount(game._1, game._3.getYear.toString, Test.getGameArticleCount(game._1));
-      if (Test.getAvgScore(game._1, game._2) != Test.calculateAvgScore(game._1))
-        Test.updateAvgScore(game._1, game._3.getYear.toString, Test.calculateAvgScore(game._1));
+      val id : Long = game._1;
+      val year : String = game._3.getYear.toString;
+      val previousReviewCount : Long = Test.getPreviousGameReviewCount(game._1, game._3.getYear.toString);
+      val reviewCount : Long = Test.getGameReviewCount(game._1);
+      val previousArticleCount : Long = Test.getPreviousGameArticleCount(game._1, game._3.getYear.toString);
+      val articleCount : Long = Test.getGameArticleCount(game._1);
+      val previousAvgScore : Double = Test.getAvgScore(game._1, game._3.getYear.toString);
+      val avgScore : Double = Test.calculateAvgScore(game._1);
+
+      if (previousReviewCount != reviewCount)
+        Test.updateReviewCount(id, year, reviewCount);
+      if (previousArticleCount != articleCount)
+        Test.updateArticleCount(id, year, articleCount);
+      if (previousAvgScore != avgScore)
+        Test.updateAvgScore(id, year, avgScore);
       println(s"Finished updating ${"\""}${game._2}${"\""}.");
     }
-    assert(true);
+  }
+
+  "randomcommand2" should "only be used FOR TESTING ONLY" in {
+    val spark : SparkSession = Test.connect();
+    //Test.executeDML(spark, "drop table if exists p1.reviewsTemp");
+    //Test.createReviewsCopy("p1.reviewsTemp");
+    //Test.executeDML(spark, s"insert into p1.reviewsTemp select review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id from p1.reviews");
+    //Test.executeDML(spark, "drop table p1.reviews");
+    //Test.executeDML(spark, "alter table p1.reviewsTemp rename to reviews");
+    //Test.createArticlesCopy("p1.articlesTemp");
+    //Test.executeDML(spark, s"insert into p1.articlesTemp select article_id, authors, title, deck, lede, body, publish_date, update_date, categories, game_id from p1.articles");
+    //Test.executeDML(spark, "drop table p1.articles");
+    //Test.executeDML(spark, "alter table p1.articlesTemp rename to articles");
   }
 
   "executeQuery(SparkSession, String)" should "be for TESTING ONLY!" in {
