@@ -1186,7 +1186,7 @@ object HiveDBManager extends HiveConnection {
     val df : DataFrame = executeQuery(spark, "select max(query_id) from p1.queries");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
-        result = df.take(1)(0).getInt(0);
+        result = df.take(1)(0).getInt(0) + 1;
 
     return result;
   }
