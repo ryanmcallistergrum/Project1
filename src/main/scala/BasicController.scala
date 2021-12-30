@@ -27,7 +27,7 @@ object BasicController {
           }
         }
         override def run() : Unit = {
-          println("Press enter at any time to go to the Main Menu.");
+          println("Press enter at any time to go to the User Menu.");
           backgroundThread.start();
           readLine();
           updateChecker.stop();
