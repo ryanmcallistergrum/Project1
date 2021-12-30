@@ -16,12 +16,14 @@ class HiveDBManager extends HiveConnection {
     createQueriesCopy("p1.queries");
     createGamesCopy("p1.games");
     createReviewsCopy("p1.reviews");
+    createReviewsByYearCopy("p1.reviewsByYear");
     createArticlesCopy("p1.articles");
+    createArticlesByYearCopy("p1.articlesByYear");
 
     executeDML(spark, s"insert into p1.users values (${getNextUserId()}, 'admin', '${"admin".sha512.hex}', true)");
   }
 
-  private def createUsersCopy(table_name : String) : Unit = {
+  protected def createUsersCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -34,7 +36,7 @@ class HiveDBManager extends HiveConnection {
     );
   }
 
-  private def createQueriesCopy(table_name : String) : Unit = {
+  protected def createQueriesCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -47,7 +49,7 @@ class HiveDBManager extends HiveConnection {
     );
   }
 
-  private def createGamesCopy(table_name : String) : Unit = {
+  protected def createGamesCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -91,6 +93,26 @@ class HiveDBManager extends HiveConnection {
     );
   }
 
+  protected def createArticlesByYearCopy(table_name : String) : Unit = {
+    executeDML(connect(),
+      "create table if not exists " +
+        s"$table_name(" +
+        "article_id BigInt, " +
+        "authors String, " +
+        "title String, " +
+        "deck String, " +
+        "lede String, " +
+        "body String, " +
+        "publish_date Timestamp, " +
+        "update_date Timestamp, " +
+        "categories map<BigInt, String>, " +
+        "game_Id BigInt " +
+        ") " +
+        "partitioned by (year String) " +
+        "stored as orc"
+    );
+  }
+
   protected def createReviewsCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
@@ -107,6 +129,30 @@ class HiveDBManager extends HiveConnection {
           "review_type String " +
         ") " +
         "partitioned by (game_id BIGINT) " +
+        "clustered by (review_type) " +
+        "sorted by (publish_date) " +
+        "into 3 buckets " +
+        "stored as orc"
+    );
+  }
+
+  protected def createReviewsByYearCopy(table_name : String) : Unit = {
+    executeDML(connect(),
+      "create table if not exists " +
+        s"$table_name(" +
+        "review_id BigInt, " +
+        "authors String, " +
+        "title String, " +
+        "deck String, " +
+        "lede String, " +
+        "body String, " +
+        "publish_date Timestamp, " +
+        "update_date Timestamp, " +
+        "score Double, " +
+        "review_type String, " +
+        "game_id BigInt " +
+        ") " +
+        "partitioned by (year String) " +
         "clustered by (review_type) " +
         "sorted by (publish_date) " +
         "into 3 buckets " +
@@ -627,6 +673,20 @@ class HiveDBManager extends HiveConnection {
         s"$score, " +
         s"'$review_type'"
     );
+    executeDML(connect(),
+      s"insert into p1.reviewsByYear partition(year=${publish_date.getYear}) select " +
+        s"${review_id}L, " +
+        s"'$authors', " +
+        s"'$title', " +
+        s"'$deck', " +
+        s"'$lede', " +
+        s"'$body', " +
+        s"to_timestamp('$publishDate'), " +
+        s"to_timestamp('$updateDate'), " +
+        s"$score, " +
+        s"'$review_type', " +
+        s"$game_id"
+    );
   }
 
   def addReviews(reviews : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]) : Unit = {
@@ -647,13 +707,13 @@ class HiveDBManager extends HiveConnection {
   }
 
   def reviewExists(review_id : Long, year : String) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L and year = '${year}' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviewsByYear where review_id = ${review_id}L and year = $year limit 1");
     return !df.isEmpty;
   }
 
   def getReview(review_id : Long, year : String) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = {
     var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = null;
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L and year = '$year' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviewsByYear where review_id = ${review_id}L and year = $year limit 1");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0)) {
         val row : Row = df.take(1)(0);
@@ -726,6 +786,11 @@ class HiveDBManager extends HiveConnection {
     executeDML(spark, "drop table p1.reviews");
     executeDML(spark, "alter table p1.reviewsTemp rename to reviews");
 
+      createReviewsByYearCopy("p1.reviewsByYearTemp");
+      executeDML(spark, s"insert into p1.reviewsByYearTemp select * from p1.reviewsByYear where game_id != ${game_id}L");
+      executeDML(spark, "drop table p1.reviewsByYear");
+      executeDML(spark, "alter table p1.reviewsByYearTemp rename to reviewsByYear");
+
     return result;
   }
 
@@ -750,6 +815,19 @@ class HiveDBManager extends HiveConnection {
         s"to_timestamp('$updateDate'), " +
         s"$categoriesString"
     );
+    executeDML(connect(),
+      s"insert into p1.articles partition(year=${publish_date.getYear}) select " +
+        s"${article_id}L, " +
+        s"'$authors', " +
+        s"'$title', " +
+        s"'$deck', " +
+        s"'$lede', " +
+        s"'$body', " +
+        s"to_timestamp('$publishDate'), " +
+        s"to_timestamp('$updateDate'), " +
+        s"$categoriesString, " +
+        s"$game_id"
+    );
   }
 
   def addArticles(articles : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)]) : Unit = {
@@ -769,13 +847,13 @@ class HiveDBManager extends HiveConnection {
   }
 
   def articleExists(article_id : Long, year : String) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L and year = '${year}' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articlesByYear where article_id = ${article_id}L and year = $year limit 1");
    return !df.isEmpty;
   }
 
   def getArticle(article_id : Long, year : String) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = {
     var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = null;
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L and year = '$year' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articlesByYear where article_id = ${article_id}L and year = $year limit 1");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0)) {
         val row : Row = df.take(1)(0);
@@ -839,6 +917,11 @@ class HiveDBManager extends HiveConnection {
     executeDML(spark, "drop table p1.articles");
     executeDML(spark, "alter table p1.articlesTemp rename to articles");
 
+    createArticlesCopy("p1.articlesByYearTemp");
+    executeDML(spark, s"insert into p1.articlesByYearTemp select * from p1.articles where game_id != ${game_id}L");
+    executeDML(spark, "drop table p1.articlesByYear");
+    executeDML(spark, "alter table p1.articlesByYearTemp rename to articlesByYear");
+
     return result;
   }
 }
@@ -851,12 +934,14 @@ object HiveDBManager extends HiveConnection {
     createQueriesCopy("p1.queries");
     createGamesCopy("p1.games");
     createReviewsCopy("p1.reviews");
+    createReviewsByYearCopy("p1.reviewsByYear");
     createArticlesCopy("p1.articles");
+    createArticlesByYearCopy("p1.articlesByYear");
 
     executeDML(spark, s"insert into p1.users values (${getNextUserId()}, 'admin', '${"admin".sha512.hex}', true)");
   }
 
-  private def createUsersCopy(table_name : String) : Unit = {
+  protected def createUsersCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -869,7 +954,7 @@ object HiveDBManager extends HiveConnection {
     );
   }
 
-  private def createQueriesCopy(table_name : String) : Unit = {
+  protected def createQueriesCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -882,7 +967,7 @@ object HiveDBManager extends HiveConnection {
     );
   }
 
-  private def createGamesCopy(table_name : String) : Unit = {
+  protected def createGamesCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
         s"$table_name(" +
@@ -926,6 +1011,26 @@ object HiveDBManager extends HiveConnection {
     );
   }
 
+  protected def createArticlesByYearCopy(table_name : String) : Unit = {
+    executeDML(connect(),
+      "create table if not exists " +
+        s"$table_name(" +
+        "article_id BigInt, " +
+        "authors String, " +
+        "title String, " +
+        "deck String, " +
+        "lede String, " +
+        "body String, " +
+        "publish_date Timestamp, " +
+        "update_date Timestamp, " +
+        "categories map<BigInt, String>, " +
+        "game_Id BigInt " +
+        ") " +
+        "partitioned by (year String) " +
+        "stored as orc"
+    );
+  }
+
   protected def createReviewsCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
@@ -942,6 +1047,30 @@ object HiveDBManager extends HiveConnection {
         "review_type String " +
         ") " +
         "partitioned by (game_id BIGINT) " +
+        "clustered by (review_type) " +
+        "sorted by (publish_date) " +
+        "into 3 buckets " +
+        "stored as orc"
+    );
+  }
+
+  protected def createReviewsByYearCopy(table_name : String) : Unit = {
+    executeDML(connect(),
+      "create table if not exists " +
+        s"$table_name(" +
+        "review_id BigInt, " +
+        "authors String, " +
+        "title String, " +
+        "deck String, " +
+        "lede String, " +
+        "body String, " +
+        "publish_date Timestamp, " +
+        "update_date Timestamp, " +
+        "score Double, " +
+        "review_type String, " +
+        "game_id BigInt " +
+        ") " +
+        "partitioned by (year String) " +
         "clustered by (review_type) " +
         "sorted by (publish_date) " +
         "into 3 buckets " +
@@ -1462,6 +1591,20 @@ object HiveDBManager extends HiveConnection {
         s"$score, " +
         s"'$review_type'"
     );
+    executeDML(connect(),
+      s"insert into p1.reviewsByYear partition(year=${publish_date.getYear}) select " +
+        s"${review_id}L, " +
+        s"'$authors', " +
+        s"'$title', " +
+        s"'$deck', " +
+        s"'$lede', " +
+        s"'$body', " +
+        s"to_timestamp('$publishDate'), " +
+        s"to_timestamp('$updateDate'), " +
+        s"$score, " +
+        s"'$review_type', " +
+        s"$game_id"
+    );
   }
 
   def addReviews(reviews : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]) : Unit = {
@@ -1482,13 +1625,13 @@ object HiveDBManager extends HiveConnection {
   }
 
   def reviewExists(review_id : Long, year : String) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L and year = '${year}' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviewsByYear where review_id = ${review_id}L and year = $year limit 1");
     return !df.isEmpty;
   }
 
   def getReview(review_id : Long, year : String) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = {
     var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long) = null;
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviews where review_id = ${review_id}L and year = '$year' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.reviewsByYear where review_id = ${review_id}L and year = $year limit 1");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0)) {
         val row : Row = df.take(1)(0);
@@ -1561,6 +1704,11 @@ object HiveDBManager extends HiveConnection {
     executeDML(spark, "drop table p1.reviews");
     executeDML(spark, "alter table p1.reviewsTemp rename to reviews");
 
+    createReviewsByYearCopy("p1.reviewsByYearTemp");
+    executeDML(spark, s"insert into p1.reviewsByYearTemp select * from p1.reviewsByYear where game_id != ${game_id}L");
+    executeDML(spark, "drop table p1.reviewsByYear");
+    executeDML(spark, "alter table p1.reviewsByYearTemp rename to reviewsByYear");
+
     return result;
   }
 
@@ -1585,6 +1733,19 @@ object HiveDBManager extends HiveConnection {
         s"to_timestamp('$updateDate'), " +
         s"$categoriesString"
     );
+    executeDML(connect(),
+      s"insert into p1.articles partition(year=${publish_date.getYear}) select " +
+        s"${article_id}L, " +
+        s"'$authors', " +
+        s"'$title', " +
+        s"'$deck', " +
+        s"'$lede', " +
+        s"'$body', " +
+        s"to_timestamp('$publishDate'), " +
+        s"to_timestamp('$updateDate'), " +
+        s"$categoriesString, " +
+        s"$game_id"
+    );
   }
 
   def addArticles(articles : List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)]) : Unit = {
@@ -1604,13 +1765,13 @@ object HiveDBManager extends HiveConnection {
   }
 
   def articleExists(article_id : Long, year : String) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L and year = '${year}' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articlesByYear where article_id = ${article_id}L and year = $year limit 1");
     return !df.isEmpty;
   }
 
   def getArticle(article_id : Long, year : String) : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = {
     var result : (Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long) = null;
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.articles where article_id = ${article_id}L and year = '$year' limit 1");
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.articlesByYear where article_id = ${article_id}L and year = $year limit 1");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0)) {
         val row : Row = df.take(1)(0);
@@ -1673,6 +1834,11 @@ object HiveDBManager extends HiveConnection {
     executeDML(spark, s"insert into p1.articlesTemp select * from p1.articles where game_id != ${game_id}L");
     executeDML(spark, "drop table p1.articles");
     executeDML(spark, "alter table p1.articlesTemp rename to articles");
+
+    createArticlesCopy("p1.articlesByYearTemp");
+    executeDML(spark, s"insert into p1.articlesByYearTemp select * from p1.articles where game_id != ${game_id}L");
+    executeDML(spark, "drop table p1.articlesByYear");
+    executeDML(spark, "alter table p1.articlesByYearTemp rename to articlesByYear");
 
     return result;
   }
