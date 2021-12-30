@@ -69,8 +69,10 @@ class APIFetcher extends GamespotAPI {
         if (running && output && summarize && gameOffset - previousGameCount > 0)
           outputFinding(s"Added ${gameOffset - previousGameCount} new games.");
 
-        outputFinding("Finished fetching the latest games! Waiting 1 hour before searching again...");
-        Thread.sleep(60*60*60*1000);
+        if (running) {
+          outputFinding("Finished fetching the latest games! Waiting 1 hour before searching again...");
+          Thread.sleep(60 * 60 * 60 * 1000);
+        }
       } else {
         outputFinding("Error while fetching from API! " + gameJson("error").str);
         running = false;
@@ -191,8 +193,10 @@ class APIFetcher extends GamespotAPI {
           i += 1;
         }
 
-        outputFinding(s"Finished fetching game ${"\""}$game_name${"\""}! Stopping instance...");
-        running = false;
+        if (running) {
+          outputFinding(s"Finished fetching game ${"\""}$game_name${"\""}! Stopping instance...")
+          running = false;
+        }
       } else {
         outputFinding(s"Game ${"\""}$game_name${"\""} not found in Gamespot API! Stopping instance...");
         running = false;
@@ -291,7 +295,7 @@ class APIFetcher extends GamespotAPI {
       filterField("release_date", ":", startDate.toLocalDate + "|" + endDate.toLocalDate);
       var gameJson: Value = ujson.read(getResults());
       if (gameJson("error").str.equals("OK")) {
-        var offset: Long = 0L;
+        var offset : Long = 0L;
         val totalResults: Long = gameJson("number_of_total_results").num.toLong;
         if (totalResults > 0) {
           while (offset < totalResults && running) {
@@ -357,7 +361,6 @@ class APIFetcher extends GamespotAPI {
         setURL(game._7, false, false, true);
         setFormat(false, true, false);
         sortField("id", true);
-        setOffset(reviewOffset);
         var reviewJson: Value = ujson.read(getResults());
         reviewTotalResults = reviewJson("number_of_total_results").num.toLong;
         if (reviewJson("error").str.equals("OK")) {
@@ -423,8 +426,7 @@ class APIFetcher extends GamespotAPI {
         outputFinding(s"Game ID $game_id not found in our games table! Stopping instance...");
         running = false;
       }
-    } else
-      outputFinding("Instance stopped! Exiting...");
+    }
   }
 
   def getGameArticles(game_id : Long, year : String) : Unit = {
@@ -448,11 +450,10 @@ class APIFetcher extends GamespotAPI {
 
       if (running && game != null) {
         Thread.sleep(1000);
-        articleOffset = HiveDBManager.getGameArticleCount(game._1);
+        articleOffset = 0L;
         setURL(game._6, false, true, false);
         setFormat(false, true, false);
         sortField("id", true);
-        setOffset(articleOffset);
         var articleJson: Value = ujson.read(getResults());
         articleTotalResults = articleJson("number_of_total_results").num.toLong;
         if (articleJson("error").str.equals("OK")) {
@@ -508,9 +509,11 @@ class APIFetcher extends GamespotAPI {
             }
           }
 
-          if (running && output && summarize && articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString) > 0)
-            outputFinding(s"Added ${articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString)} articles to ${"\""}${game._2}${"\""}.");
-          if (running && articleOffset - HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString) > 0)
+          val previousGameArticleCount : Long = HiveDBManager.getPreviousGameArticleCount(game._1, game._3.getYear.toString);
+
+          if (running && output && summarize && articleOffset - previousGameArticleCount > 0)
+            outputFinding(s"Added ${articleOffset - previousGameArticleCount} articles to ${"\""}${game._2}${"\""}.");
+          if (running && articleOffset - previousGameArticleCount > 0)
             HiveDBManager.updateArticleCount(game._1, game._3.getYear.toString, HiveDBManager.getGameArticleCount(game._1));
         } else {
           outputFinding("Error while fetching from API! " + articleJson("error").str);
@@ -520,8 +523,7 @@ class APIFetcher extends GamespotAPI {
         outputFinding(s"Game ID $game_id not found in our games table! Stopping instance...");
         running = false;
       }
-    } else
-      outputFinding("Instance stopped! Exiting...");
+    }
   }
 
   def getAllReviews() : Unit = {
@@ -605,14 +607,15 @@ class APIFetcher extends GamespotAPI {
           }
         }
 
-        outputFinding("Finished fetching all reviews! Stopping instance...");
-        running = false;
+        if (running) {
+          outputFinding("Finished fetching all reviews! Stopping instance...");
+          running = false;
+        }
       } else {
         outputFinding("Error while fetching from API! " + reviewJson("error").str);
         running = false;
       }
-    } else
-      outputFinding("Instance stopped! Exiting...");
+    }
   }
 
   def outputFindings() : Unit = {
