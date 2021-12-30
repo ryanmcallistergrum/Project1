@@ -28,7 +28,7 @@ class HiveConnection {
   }
 
   protected def showQuery(spark : SparkSession, sql : String) : Unit = {
-    spark.sql(sql).show();
+    spark.sql(sql).show(Integer.MAX_VALUE, false);
   }
 
   protected def disconnect(spark : SparkSession) : Unit = {
