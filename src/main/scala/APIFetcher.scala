@@ -357,6 +357,7 @@ class APIFetcher extends GamespotAPI {
         setURL(game._7, false, false, true);
         setFormat(false, true, false);
         sortField("id", true);
+        setOffset(reviewOffset);
         var reviewJson: Value = ujson.read(getResults());
         reviewTotalResults = reviewJson("number_of_total_results").num.toLong;
         if (reviewJson("error").str.equals("OK")) {
@@ -406,9 +407,11 @@ class APIFetcher extends GamespotAPI {
             }
           }
 
-          if (running && output && summarize && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString) > 0)
-            outputFinding(s"Added ${reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString)} reviews to ${"\""}${game._2}${"\""}.");
-          if (running && reviewOffset - HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString) > 0) {
+          val previousGameReviewCount : Long = HiveDBManager.getPreviousGameReviewCount(game._1, game._3.getYear.toString);
+
+          if (running && output && summarize && reviewOffset - previousGameReviewCount > 0)
+            outputFinding(s"Added ${reviewOffset - previousGameReviewCount} reviews to ${"\""}${game._2}${"\""}.");
+          if (running && reviewOffset - previousGameReviewCount > 0) {
             HiveDBManager.updateReviewCount(game._1, game._3.getYear.toString, HiveDBManager.getGameReviewCount(game._1))
             HiveDBManager.updateAvgScore(game._1, game._3.getYear.toString, HiveDBManager.calculateAvgScore(game._1));
           }
@@ -449,6 +452,7 @@ class APIFetcher extends GamespotAPI {
         setURL(game._6, false, true, false);
         setFormat(false, true, false);
         sortField("id", true);
+        setOffset(articleOffset);
         var articleJson: Value = ujson.read(getResults());
         articleTotalResults = articleJson("number_of_total_results").num.toLong;
         if (articleJson("error").str.equals("OK")) {
