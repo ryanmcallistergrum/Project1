@@ -6,8 +6,10 @@ object BasicController {
 
   def authorize(username : String, password : String) : Unit = {
     user_id = HiveDBManager.authenticate(username, password, false);
-    if (user_id > 0)
-      homeScreen();
+    if (user_id > 0) {
+      println("Login successful, entering Home Screen...");
+      homeScreen()
+    }
   }
 
   private def homeScreen() : Unit = {
