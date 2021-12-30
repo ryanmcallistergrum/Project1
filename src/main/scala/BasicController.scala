@@ -105,9 +105,11 @@ object BasicController {
 
         if (userInput == 0)
           state = "User Menu";
-        else if (!HiveDBManager.queryNameExists(queries(userInput)))
-          println("Query deleted between selection and execution! Please select another query or notify an administrator.");
-        else {
+        else if (!HiveDBManager.queryExists(userInput)) {
+          println("Query deleted between selection and execution! Please select another query or notify an administrator.")
+          print("Press enter when ready to continue...");
+          readLine();
+        } else {
           HiveDBManager.showQuery(userInput);
           print("Press enter when ready to continue...");
           readLine();
