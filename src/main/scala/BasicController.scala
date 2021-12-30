@@ -82,9 +82,10 @@ object BasicController {
 
 
       if (queries.isEmpty) {
-        print("No saved queries found! Please notify an administrator if you are expecting queries. Returning to the main menu...")
+        println("No saved queries found! Please notify an administrator if you are expecting queries. Returning to the User Menu.");
+        print("Press enter to continue...")
         readLine();
-        state = "Main Menu";
+        state = "User Menu";
       } else {
         var userInput: Int = -1;
         for (query : Int <- queries.keys.toList.sorted)
@@ -103,7 +104,7 @@ object BasicController {
         } while (userInput == -1);
 
         if (userInput == 0)
-          state = "Main Menu";
+          state = "User Menu";
         else if (!HiveDBManager.queryNameExists(queries(userInput)))
           println("Query deleted between selection and execution! Please select another query or notify an administrator.");
         else {
