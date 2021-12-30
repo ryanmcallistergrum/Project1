@@ -27,6 +27,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def deleteUser(user_id: Int): Unit = super.deleteUser(user_id);
     override def getNextQueryId(): Int = super.getNextQueryId();
     override def getQueries(): Map[Int, String] = super.getQueries();
+    override def queryExists(query_id: Int): Boolean = super.queryExists(query_id);
     override def queryNameExists(query_name : String): Boolean = super.queryNameExists(query_name);
     override def showQuery(query_id: Int): Unit = super.showQuery(query_id);
     override def showQuery(query: String): Unit = super.showQuery(query);
@@ -91,22 +92,11 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }*/
 
   "randomcommands2" should "only be used FOR TESTING" in {
-    Test.executeDML(Test.connect(), "drop table if exists p1.articlesByYear");
-    Test.createArticlesByYearCopy("p1.articlesByYear");
-    Test.executeDML(Test.connect(),
-      "insert into p1.articlesByYear " +
-      "select *, year(publish_date) as year from p1.articles"
-    );
-    Test.executeDML(Test.connect(), "drop table if exists p1.reviewsByYear");
-    Test.createReviewsByYearCopy("p1.reviewsByYear");
-    Test.executeDML(Test.connect(),
-      "insert into p1.reviewsByYear " +
-        "select *, year(publish_date) as year from p1.reviews"
-    );
+    Test.executeDML(Test.connect(), "truncate table p1.queries");
   }
 
   "Most Mentioned" should "show the most-mentioned game each year and month" in {
-    Test.saveQuery(1, "Most Mentioned", "select g.name, max_counts.max_num as mentions, max_counts.year, max_counts.month from (select max(counts.num) as max_num, counts.year, counts.month from (select game_id, count(game_id) as num, year, date_format(publish_date, ''MM'') as month from p1.articlesByYear group by year, date_format(publish_date, ''MM''), game_id order by year desc, month desc, num desc, game_id asc) counts group by counts.year, counts.month order by counts.year desc, counts.month desc) max_counts, (select game_id, count(game_id) as num, year, date_format(publish_date, ''MM'') as month from p1.articlesByYear group by year, date_format(publish_date, ''MM''), game_id order by year desc, month desc, num desc, game_id asc) counts, p1.games g where g.game_id = counts.game_id and counts.num = max_counts.max_num and counts.month = max_counts.month and counts.year = max_counts.year and max_counts.year >= 2011 order by max_counts.year desc, max_counts.month desc, max_counts.max_num desc, g.name asc"
+    Test.saveQuery(1, "Most Mentioned", "select g.name, max_counts.max_num as mentions, max_counts.year, max_counts.month from (select max(counts.num) as max_num, counts.year, counts.month from (select game_id, count(game_id) as num, year, date_format(publish_date, \\'MM\\') as month from p1.articlesByYear group by year, date_format(publish_date, \\'MM\\'), game_id order by year desc, month desc, num desc, game_id asc) counts group by counts.year, counts.month order by counts.year desc, counts.month desc) max_counts, (select game_id, count(game_id) as num, year, date_format(publish_date, \\'MM\\') as month from p1.articlesByYear group by year, date_format(publish_date, \\'MM\\'), game_id order by year desc, month desc, num desc, game_id asc) counts, p1.games g where g.game_id = counts.game_id and counts.num = max_counts.max_num and counts.month = max_counts.month and counts.year = max_counts.year and max_counts.year >= 2011 order by max_counts.year desc, max_counts.month desc, max_counts.max_num desc, g.name asc"
     );
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
@@ -172,7 +162,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Articles With Cheats" should "show articles with cheats mentioned somewhere" in {
-    Test.saveQuery(1,"Articles With Cheats", "select g.name, a.title, regexp_extract(a.body, ''(Cheat(s|er|ers|ing)?([^\\.]|.net)+\\.|[A-Z][^A-Z\\.]+cheat(s|er|ers|ing)?([^\\.]|.net)+\\.)'', 1) as sentence from p1.games g, p1.articles a where g.game_id = a.game_id and a.body rlike ''[Cc]heat(s|er|ers|ing)?'' order by g.name, a.title"
+    Test.saveQuery(1,"Articles With Cheats", "select g.name, a.title, regexp_extract(a.body, \\'(Cheat(s|er|ers|ing)?([^\\.]|.net)+\\.|[A-Z][^A-Z\\.]+cheat(s|er|ers|ing)?([^\\.]|.net)+\\.)\\', 1) as sentence from p1.games g, p1.articles a where g.game_id = a.game_id and a.body rlike \\'[Cc]heat(s|er|ers|ing)?\\' order by g.name, a.title"
     );
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
@@ -186,18 +176,26 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(true);*/
   }
 
-  "Delete From 2021" should "show how many games, articles, and reviews we would delete from a given period" in {
-    Test.saveQuery(1, "Delete From 2021","select count(g.game_id) as games, count(a.article_id) as articles, count(r.review_id) as reviews from p1.games g, p1.articlesByYear a, p1.reviewsByYear r where g.release_date between ''2021-01-01'' and ''2021-12-31'' and a.publish_date between ''2021-01-01'' and ''2021-12-31'' and a.year between year(''2021-01-01'') and year(''2021-12-31'') and r.publish_date between ''2021-01-01'' and ''2021-12-31'' and r.year between year(''2021-01-01'') and year(''2021-12-31'')"
-    );
+  "Games, Articles, and Reviews From 2021" should "show how many games, articles, and reviews we would delete from a given period" in {
+    Test.saveQuery(1, "Games, Articles, and Reviews From 2021","select gameCount.num as games, articleCount.num as articles, reviewCount.num as reviews from (select count(g.game_id) as num from p1.games g where g.release_date between \\'2021-01-01\\' and \\'2021-12-31\\') gameCount, (select count(a.article_id) as num from p1.articlesByYear a where a.publish_date between \\'2021-01-01\\' and \\'2021-12-31\\' and a.year between year(\\'2021-01-01\\') and year(\\'2021-12-31\\')) articleCount, (select count(r.review_id) as num from p1.reviewsByYear r where r.publish_date between \\'2021-01-01\\' and \\'2021-12-31\\' and r.year between year(\\'2021-01-01\\') and year(\\'2021-12-31\\')) reviewCount");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
-      "select count(g.game_id) as games, count(a.article_id) as articles, count(r.review_id) as reviews " +
-      "from p1.games g, p1.articlesByYear a, p1.reviewsByYear r " +
-      "where g.release_date between '2021-01-01' and '2021-12-31' " +
-      "and a.publish_date between '2021-01-01' and '2021-12-31' " +
-      "and a.year between year('2021-01-01') and year('2021-12-31') " +
-      "and r.publish_date between '2021-01-01' and '2021-12-31' " +
-      "and r.year between year('2021-01-01') and year('2021-12-31')"
+      "select games.num, articles.num, reviews.num " +
+      "from (" +
+        "select count(g.game_id) as num " +
+        "from p1.games g " +
+        "where g.release_date between '2021-01-01' and '2021-12-31'" +
+      ") games, (" +
+        "select count(a.article_id) as num " +
+        "from p1.articlesByYear a " +
+        "where a.publish_date between '2021-01-01' and '2021-12-31' " +
+        "and a.year between year('2021-01-01') and year('2021-12-31')" +
+      ") articles, (" +
+        "select count(r.review_id) as num " +
+        "from p1.reviewsByYear r " +
+        "where r.publish_date between '2021-01-01' and '2021-12-31' " +
+        "and r.year between year('2021-01-01') and year('2021-12-31')" +
+      ") reviews "
     );
     df.show(Int.MaxValue, false);
     assert(true);*/
@@ -261,8 +259,8 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(true);*/
   }
 
-  "New Releases, Reviews, and Articles in 2021" should "show games that have been newly released along with games that have had new reviews and articles, and how many from a given date" in {
-    Test.saveQuery(1, "New Releases, Reviews, and Articles in 2021", "select g.name, (case when g.release_date <= ''2021-01-01'' then false else true end) as released, counts.articleCount, counts.reviewCount from p1.games g, (select game_id, count(publish_date) as articleCount, 0 as reviewCount from p1.articlesByYear where publish_date >= ''2021-01-01'' and year >= year(''2021-01-01'') group by game_id union select game_id, 0 as articleCount, count(publish_date) as reviewCount from p1.reviewsByYear where publish_date >= ''2021-01-01'' and year >= year(''2021-01-01'') group by game_id order by game_id) counts where g.game_id = counts.game_id order by g.name"
+  "New Releases, Reviews, and Articles Since 2021" should "show games that have been newly released along with games that have had new reviews and articles, and how many from a given date, since the start of 2021" in {
+    Test.saveQuery(1, "New Releases, Reviews, and Articles Since 2021", "select g.name, (case when g.release_date <= \\'2021-01-01\\' then false else true end) as released, counts.articleCount, counts.reviewCount from p1.games g, (select game_id, count(publish_date) as articleCount, 0 as reviewCount from p1.articlesByYear where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id union select game_id, 0 as articleCount, count(publish_date) as reviewCount from p1.reviewsByYear where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id order by game_id) counts where g.game_id = counts.game_id order by g.name"
     );
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
@@ -391,6 +389,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
       assert(true);
     else
       assert(Test.getQueries().nonEmpty);
+  }
+
+  "queryExists(Int)" should "return whether a query with the given query_id exists in our datastore" in {
+    val queries : Map[Int, String] = Test.getQueries();
+    if (queries.nonEmpty)
+      assert(Test.queryExists(queries.keys.head));
   }
 
   "queryNameExists(String)" should "return true if a query with the given name exists" in {

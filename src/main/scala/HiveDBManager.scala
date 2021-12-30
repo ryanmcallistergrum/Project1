@@ -284,6 +284,14 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
+  def queryExists(query_id: Int): Boolean = {
+    val queries : Map[Int, String] = getQueries();
+    if (queries.isEmpty)
+      return false;
+    else
+      return queries.keys.exists(q => q.equals(query_id));
+  }
+
   def queryNameExists(query_name : String) : Boolean = {
     val queries : Map[Int, String] = getQueries();
     if (queries.isEmpty)
@@ -1200,6 +1208,14 @@ object HiveDBManager extends HiveConnection {
         for (row : Row <- df.collect())
           result += (row.getInt(0) -> row.getString(1));
     return result;
+  }
+
+  def queryExists(query_id: Int): Boolean = {
+    val queries : Map[Int, String] = getQueries();
+    if (queries.isEmpty)
+      return false;
+    else
+      return queries.keys.exists(q => q.equals(query_id));
   }
 
   def queryNameExists(query_name : String) : Boolean = {
