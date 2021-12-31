@@ -93,7 +93,18 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands2" should "only be used FOR TESTING" in {
-    Test.executeDML(Test.connect(), "truncate table p1.queries");
+    val spark : SparkSession = Test.connect();
+    Test.createReviewsCopy("p1.reviewsTemp");
+    Test.executeDML(spark, s"insert into p1.reviewsTemp select * from p1.reviewsByYear");
+    Test.executeDML(spark, "drop table p1.reviews");
+    Test.executeDML(spark, "drop table p1.reviewsByYear");
+    Test.executeDML(spark, "alter table p1.reviewsTemp rename to reviews");
+
+    Test.createArticlesCopy("p1.articlesTemp");
+    Test.executeDML(spark, s"insert into p1.articlesTemp select * from p1.articlesByYear");
+    Test.executeDML(spark, "drop table p1.articles");
+    Test.executeDML(spark, "drop table p1.articlesByYear");
+    Test.executeDML(spark, "alter table p1.articlesTemp rename to articles");
   }
 
   "Most Mentioned" should "show the most-mentioned game each year and month" in {
