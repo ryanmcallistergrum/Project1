@@ -112,7 +112,13 @@ object BasicController {
         } else {
           HiveDBManager.showQuery(userInput);
           print("Press enter when ready to continue...");
-          readLine();
+          println();
+          val choice : String = readLine("Would you like to save the results of the query? Enter 'y' to continue or anything else to skip: ");
+          if (choice.toLowerCase().equals("y")) {
+            val filePath : String = readLine("Please enter the either the local filename or the full file path (enter nothing to skip): ");
+            if (filePath.nonEmpty)
+              HiveDBManager.exportQueryResults(userInput, filePath);
+          }
         }
 
         userInput = -1;
