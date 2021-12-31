@@ -31,6 +31,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def queryNameExists(query_name : String): Boolean = super.queryNameExists(query_name);
     override def showQuery(query_id: Int): Unit = super.showQuery(query_id);
     override def showQuery(query: String): Unit = super.showQuery(query);
+    override def renameQuery(query_id: Int, newName: String): Unit = super.renameQuery(query_id, newName);
     override def saveQuery(user_id: Int, query_name: String, query: String): Unit = super.saveQuery(user_id, query_name, query);
     override def exportQueryResults(query_id: Int, filePath: String): Unit = super.exportQueryResults(query_id, filePath);
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
@@ -438,6 +439,16 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   "showQuery(String)" should "output the passed-in query" in {
     Test.showQuery("select * from p1.games");
     assert(true);
+  }
+
+  "renameQuery(Int, String)" should "rename the query with the given query_id to the given newQuery name" in {
+    assert(!Test.queryNameExists("test"));
+    Test.saveQuery(1, "test", "test");
+    assert(Test.queryNameExists("test"));
+    Test.renameQuery(Test.getQueries().find(q => q._2.equals("test")).get._1, "test02");
+    assert(Test.queryNameExists("test02"));
+    Test.deleteQuery(Test.getQueries().find(q => q._2.equals("test02")).get._1);
+    assert(!Test.queryNameExists("test02"));
   }
 
   "saveQuery(Int, String, String)" should "save the passed-in query and user information to the queries table" in {

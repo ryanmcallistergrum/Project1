@@ -279,6 +279,27 @@ class HiveDBManager extends HiveConnection {
     showQuery(connect(), query);
   }
 
+  protected def renameQuery(query_id : Int, newName : String) : Unit = {
+    if (!queryNameExists(newName)) {
+      val spark: SparkSession = connect();
+      var query: (Int, String) = null;
+      val df: DataFrame = executeQuery(spark, s"select user_id, query from p1.queries where query_id = $query_id");
+      if (!df.isEmpty)
+        if (!df.take(1)(0).isNullAt(0))
+          query = (
+            df.take(1)(0).getInt(0),
+            df.take(1)(0).getString(1)
+          );
+      if (query != null) {
+        createQueriesCopy("p1.queriesTemp");
+        executeDML(spark, s"insert into p1.queriesTemp select * from p1.queries where query_id != $query_id")
+        executeDML(spark, "drop table p1.queries");
+        executeDML(spark, "alter table p1.queriesTemp rename to queries");
+        executeDML(spark, s"insert into p1.queries values ($query_id, ${query._1}, '$newName', '${query._2}')");
+      }
+    }
+  }
+
   protected def saveQuery(user_id : Int, query_name : String, query : String) : Unit = {
     executeDML(connect(), s"insert into p1.queries values (${getNextQueryId()}, $user_id, '$query_name', '$query')");
   }
