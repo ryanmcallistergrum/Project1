@@ -11,6 +11,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def executeQuery(spark: SparkSession, sql: String): DataFrame = super.executeQuery(spark, sql);
     override def showQuery(spark: SparkSession, sql: String): Unit = super.showQuery(spark, sql);
     override def createDB() : Unit = super.createDB();
+    override def startupDB() : Unit = super.startupDB();
     override def createReviewsCopy(table_name: String): Unit = super.createReviewsCopy(table_name);
     override def createReviewsByYearCopy(table_name: String): Unit = super.createReviewsByYearCopy(table_name);
     override def createArticlesCopy(table_name: String): Unit = super.createArticlesCopy(table_name);
@@ -301,6 +302,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   "createDB()" should "create a new P1 database with all the necessary tables and a pre-made Admin user" in {
     Test.createDB();
     assert(true);
+  }
+
+  "startupDB()" should "perform the initial slow connect to the datastore" in {
+    Test.startupDB();
   }
 
   "getNextUserId()" should "return the next usable user_id from the database" in {

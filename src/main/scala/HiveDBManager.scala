@@ -24,6 +24,10 @@ class HiveDBManager extends HiveConnection {
     executeDML(spark, s"insert into p1.users values (${getNextUserId()}, 'admin', '${"admin".sha512.hex}', true)");
   }
 
+  def startupDB() : Unit = {
+    val spark : SparkSession = connect();
+  }
+
   protected def createUsersCopy(table_name : String) : Unit = {
     executeDML(connect(),
       "create table if not exists " +
@@ -971,6 +975,10 @@ object HiveDBManager extends HiveConnection {
     createArticlesByYearCopy("p1.articlesByYear");
 
     executeDML(spark, s"insert into p1.users values (${getNextUserId()}, 'admin', '${"admin".sha512.hex}', true)");
+  }
+
+  def startupDB() : Unit = {
+    val spark : SparkSession = connect();
   }
 
   protected def createUsersCopy(table_name : String) : Unit = {
