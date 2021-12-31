@@ -55,7 +55,7 @@ object Controller {
           state = "Intro";
         };
         else if (HiveDBManager.authenticate(username, password, true) > 0) {
-          null; //AdminController.authorize(username, password);
+          AdminController.authorize(username, password);
           state = "Intro";
         }
         else
