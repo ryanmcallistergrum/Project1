@@ -13,9 +13,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def createDB() : Unit = super.createDB();
     override def startupDB() : Unit = super.startupDB();
     override def createReviewsCopy(table_name: String): Unit = super.createReviewsCopy(table_name);
-    override def createReviewsByYearCopy(table_name: String): Unit = super.createReviewsByYearCopy(table_name);
     override def createArticlesCopy(table_name: String): Unit = super.createArticlesCopy(table_name);
-    override def createArticlesByYearCopy(table_name: String): Unit = super.createArticlesByYearCopy(table_name);
     override def getNextUserId(): Int = super.getNextUserId()
     override def getUsers(): List[(Int, String, String, Boolean)] = super.getUsers();
     override def authenticate(username: String, password: String, isAdmin: Boolean): Int = super.authenticate(username, password, isAdmin);
@@ -73,7 +71,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def deleteGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.deleteGameArticles(game_id);
   }
 
-  /*"randomcommands" should "only be used FOR TESTING ONLY" in {
+  "randomcommands" should "only be used FOR TESTING ONLY" in {
     for(game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) <- Test.getGames()) {
       val id : Long = game._1;
       val year : String = game._3.getYear.toString;
@@ -92,14 +90,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         Test.updateAvgScore(id, year, avgScore);
       println(s"Finished updating ${"\""}${game._2}${"\""}.");
     }
-  }*/
+  }
 
   "randomcommands2" should "only be used FOR TESTING" in {
     Test.executeDML(Test.connect(), "truncate table p1.queries");
   }
 
   "Most Mentioned" should "show the most-mentioned game each year and month" in {
-    Test.saveQuery(1, "Most Mentioned", "select g.name, max_counts.max_num as mentions, max_counts.year, max_counts.month from (select max(counts.num) as max_num, counts.year, counts.month from (select game_id, count(game_id) as num, year, date_format(publish_date, \\'MM\\') as month from p1.articlesByYear group by year, date_format(publish_date, \\'MM\\'), game_id order by year desc, month desc, num desc, game_id asc) counts group by counts.year, counts.month order by counts.year desc, counts.month desc) max_counts, (select game_id, count(game_id) as num, year, date_format(publish_date, \\'MM\\') as month from p1.articlesByYear group by year, date_format(publish_date, \\'MM\\'), game_id order by year desc, month desc, num desc, game_id asc) counts, p1.games g where g.game_id = counts.game_id and counts.num = max_counts.max_num and counts.month = max_counts.month and counts.year = max_counts.year and max_counts.year >= 2011 order by max_counts.year desc, max_counts.month desc, max_counts.max_num desc, g.name asc"
+    Test.saveQuery(1, "Most Mentioned", "select g.name, max_counts.max_num as mentions, max_counts.year, max_counts.month from (select max(counts.num) as max_num, counts.year, counts.month from (select game_id, count(game_id) as num, year, date_format(publish_date, \\'MM\\') as month from p1.articles group by year, date_format(publish_date, \\'MM\\'), game_id order by year desc, month desc, num desc, game_id asc) counts group by counts.year, counts.month order by counts.year desc, counts.month desc) max_counts, (select game_id, count(game_id) as num, year, date_format(publish_date, \\'MM\\') as month from p1.articles group by year, date_format(publish_date, \\'MM\\'), game_id order by year desc, month desc, num desc, game_id asc) counts, p1.games g where g.game_id = counts.game_id and counts.num = max_counts.max_num and counts.month = max_counts.month and counts.year = max_counts.year and max_counts.year >= 2011 order by max_counts.year desc, max_counts.month desc, max_counts.max_num desc, g.name asc"
     );
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
@@ -108,7 +106,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "select max(counts.num) as max_num, counts.year, counts.month " +
           "from (" +
             "select game_id, count(game_id) as num, year, date_format(publish_date, 'MM') as month " +
-            "from p1.articlesByYear " +
+            "from p1.articles " +
             "group by year, date_format(publish_date, 'MM'), game_id " +
             "order by year desc, month desc, num desc, game_id asc" +
           ") counts " +
@@ -116,7 +114,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "order by counts.year desc, counts.month desc" +
       ") max_counts, (" +
         "select game_id, count(game_id) as num, year, date_format(publish_date, 'MM') as month " +
-        "from p1.articlesByYear " +
+        "from p1.articles " +
         "group by year, date_format(publish_date, 'MM'), game_id " +
         "order by year desc, month desc, num desc, game_id asc" +
       ") counts, p1.games g " +
@@ -132,7 +130,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Least Mentioned" should "show the least-mentioned games in articles each year" in {
-    Test.saveQuery(1,"Least Mentioned", "select g.name, min_counts.min_num as mentions, max(min_counts.year) as year from (select min(counts.num) as min_num, counts.year from (select game_id, count(game_id) as num, year from p1.articlesByYear group by year, game_id order by year desc, num desc, game_id asc) counts group by counts.year order by counts.year desc) min_counts, (select game_id, count(game_id) as num, year from p1.articlesByYear group by year, game_id order by year desc, num desc, game_id asc) counts, p1.games g where g.game_id = counts.game_id and counts.num = min_counts.min_num and counts.year = min_counts.year and min_counts.year >= 2011 group by min_counts.min_num, g.name order by max(min_counts.year) desc, min_counts.min_num desc, g.name asc"
+    Test.saveQuery(1,"Least Mentioned", "select g.name, min_counts.min_num as mentions, max(min_counts.year) as year from (select min(counts.num) as min_num, counts.year from (select game_id, count(game_id) as num, year from p1.articles group by year, game_id order by year desc, num desc, game_id asc) counts group by counts.year order by counts.year desc) min_counts, (select game_id, count(game_id) as num, year from p1.articles group by year, game_id order by year desc, num desc, game_id asc) counts, p1.games g where g.game_id = counts.game_id and counts.num = min_counts.min_num and counts.year = min_counts.year and min_counts.year >= 2011 group by min_counts.min_num, g.name order by max(min_counts.year) desc, min_counts.min_num desc, g.name asc"
     );
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
@@ -141,7 +139,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
           "select min(counts.num) as min_num, counts.year " +
           "from (" +
             "select game_id, count(game_id) as num, year " +
-            "from p1.articlesByYEar " +
+            "from p1.articles " +
             "group by year, game_id " +
             "order by year desc, num desc, game_id asc" +
           ") counts " +
@@ -149,7 +147,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
           "order by counts.year desc" +
         ") min_counts, (" +
           "select game_id, count(game_id) as num, year " +
-          "from p1.articlesByYear " +
+          "from p1.articles " +
           "group by year, game_id " +
           "order by year desc, num desc, game_id asc" +
         ") counts, p1.games g " +
@@ -180,7 +178,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Games, Articles, and Reviews From 2021" should "show how many games, articles, and reviews we would delete from a given period" in {
-    Test.saveQuery(1, "Games, Articles, and Reviews From 2021","select gameCount.num as games, articleCount.num as articles, reviewCount.num as reviews from (select count(g.game_id) as num from p1.games g where g.release_date between \\'2021-01-01\\' and \\'2021-12-31\\') gameCount, (select count(a.article_id) as num from p1.articlesByYear a where a.publish_date between \\'2021-01-01\\' and \\'2021-12-31\\' and a.year between year(\\'2021-01-01\\') and year(\\'2021-12-31\\')) articleCount, (select count(r.review_id) as num from p1.reviewsByYear r where r.publish_date between \\'2021-01-01\\' and \\'2021-12-31\\' and r.year between year(\\'2021-01-01\\') and year(\\'2021-12-31\\')) reviewCount");
+    Test.saveQuery(1, "Games, Articles, and Reviews From 2021","select gameCount.num as games, articleCount.num as articles, reviewCount.num as reviews from (select count(g.game_id) as num from p1.games g where g.release_date between \\'2021-01-01\\' and \\'2021-12-31\\') gameCount, (select count(a.article_id) as num from p1.articles a where a.publish_date between \\'2021-01-01\\' and \\'2021-12-31\\' and a.year between year(\\'2021-01-01\\') and year(\\'2021-12-31\\')) articleCount, (select count(r.review_id) as num from p1.reviews r where r.publish_date between \\'2021-01-01\\' and \\'2021-12-31\\' and r.year between year(\\'2021-01-01\\') and year(\\'2021-12-31\\')) reviewCount");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
       "select games.num, articles.num, reviews.num " +
@@ -190,12 +188,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "where g.release_date between '2021-01-01' and '2021-12-31'" +
       ") games, (" +
         "select count(a.article_id) as num " +
-        "from p1.articlesByYear a " +
+        "from p1.articles a " +
         "where a.publish_date between '2021-01-01' and '2021-12-31' " +
         "and a.year between year('2021-01-01') and year('2021-12-31')" +
       ") articles, (" +
         "select count(r.review_id) as num " +
-        "from p1.reviewsByYear r " +
+        "from p1.reviews r " +
         "where r.publish_date between '2021-01-01' and '2021-12-31' " +
         "and r.year between year('2021-01-01') and year('2021-12-31')" +
       ") reviews "
@@ -205,13 +203,13 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Reviews Over Time" should "show the changes in review ratings 1, 5, 15, and 30 days out from an article" in {
-    Test.saveQuery(1, "Review Median Per Article Over Time", "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days from (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 1) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) oneDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 5) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fiveDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 15) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fifteenDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 30) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) thirtyDay, p1.games g, p1.articlesByYear a where g.game_id = a.game_id and g.game_id = oneDay.game_id and g.game_id = fiveDay.game_id and g.game_id = fifteenDay.game_id and g.game_id = thirtyDay.game_id and a.title = oneDay.title and a.title = fiveDay.title and a.title = fifteenDay.title and a.title = thirtyDay.title and a.year = oneDay.year and a.year = fiveDay.year and a.year = fifteenDay.year and a.year = thirtyDay.year order by g.name asc");
+    Test.saveQuery(1, "Review Median Per Article Over Time", "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days from (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 1) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) oneDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 5) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fiveDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 15) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fifteenDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 30) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) thirtyDay, p1.games g, p1.articles a where g.game_id = a.game_id and g.game_id = oneDay.game_id and g.game_id = fiveDay.game_id and g.game_id = fifteenDay.game_id and g.game_id = thirtyDay.game_id and a.title = oneDay.title and a.title = fiveDay.title and a.title = fifteenDay.title and a.title = thirtyDay.title and a.year = oneDay.year and a.year = fiveDay.year and a.year = fifteenDay.year and a.year = thirtyDay.year order by g.name asc");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
       "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days " +
       "from (" +
         "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
-        "from p1.reviewsByYear r, p1.articlesByYear a " +
+        "from p1.reviews r, p1.articles a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 1) " +
           "and a.game_id = r.game_id " +
           "and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) " +
@@ -219,7 +217,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "order by a.game_id asc, a.year desc" +
       ") oneDay, (" +
         "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
-        "from p1.reviewsByYear r, p1.articlesByYear a " +
+        "from p1.reviews r, p1.articles a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 5) " +
           "and a.game_id = r.game_id " +
           "and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) " +
@@ -227,7 +225,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "order by a.game_id asc, a.year desc" +
       ") fiveDay, (" +
         "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
-        "from p1.reviewsByYear r, p1.articlesByYear a " +
+        "from p1.reviews r, p1.articles a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 15) " +
           "and a.game_id = r.game_id " +
           "and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) " +
@@ -235,13 +233,13 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "order by a.game_id asc, a.year desc" +
       ") fifteenDay, (" +
         "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
-        "from p1.reviewsByYear r, p1.articlesByYear a " +
+        "from p1.reviews r, p1.articles a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 30) " +
           "and a.game_id = r.game_id " +
           "and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) " +
         "group by a.game_id, a.title, a.year " +
         "order by a.game_id asc, a.year desc" +
-      ") thirtyDay, p1.games g, p1.articlesByYear a " +
+      ") thirtyDay, p1.games g, p1.articles a " +
       "where g.game_id = a.game_id " +
         "and g.game_id = oneDay.game_id " +
         "and g.game_id = fiveDay.game_id " +
@@ -262,20 +260,20 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "New Releases, Reviews, and Articles Since 2021" should "show games that have been newly released along with games that have had new reviews and articles, and how many from a given date, since the start of 2021" in {
-    Test.saveQuery(1, "New Releases, Reviews, and Articles Since 2021", "select g.name, (case when g.release_date <= \\'2021-01-01\\' then false else true end) as released, counts.articleCount, counts.reviewCount from p1.games g, (select game_id, count(publish_date) as articleCount, 0 as reviewCount from p1.articlesByYear where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id union select game_id, 0 as articleCount, count(publish_date) as reviewCount from p1.reviewsByYear where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id order by game_id) counts where g.game_id = counts.game_id order by g.name"
+    Test.saveQuery(1, "New Releases, Reviews, and Articles Since 2021", "select g.name, (case when g.release_date <= \\'2021-01-01\\' then false else true end) as released, counts.articleCount, counts.reviewCount from p1.games g, (select game_id, count(publish_date) as articleCount, 0 as reviewCount from p1.articles where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id union select game_id, 0 as articleCount, count(publish_date) as reviewCount from p1.reviews where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id order by game_id) counts where g.game_id = counts.game_id order by g.name"
     );
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
       "select g.name, (case when g.release_date <= '2021-01-01' then false else true end) as released, counts.articleCount, counts.reviewCount " +
       "from p1.games g, ( " +
         "select game_id, count(publish_date) as articleCount, 0 as reviewCount " +
-        "from p1.articlesByYear " +
+        "from p1.articles " +
         "where publish_date >= '2021-01-01' " +
           "and year >= year('2021-01-01') " +
         "group by game_id " +
         "union " +
         "select game_id, 0 as articleCount, count(publish_date) as reviewCount " +
-        "from p1.reviewsByYear " +
+        "from p1.reviews " +
         "where publish_date >= '2021-01-01' " +
           "and year >= year('2021-01-01') " +
         "group by game_id " +
