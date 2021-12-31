@@ -1,6 +1,7 @@
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import com.roundeights.hasher.Implicits._
 
+import java.io.{BufferedReader, File, FileFilter, FileReader, FileWriter}
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -273,6 +274,14 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
+  def getQuery(query_id : Int) : String = {
+    val df : DataFrame = executeQuery(connect(), s"select query from p1.queries where query_id = $query_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getString(0);
+    return "";
+  }
+
   def getQueries() : Map[Int, String] = {
     var result : Map[Int, String] = Map();
     val spark : SparkSession = connect();
@@ -314,6 +323,21 @@ class HiveDBManager extends HiveConnection {
 
   protected def saveQuery(user_id : Int, query_name : String, query : String) : Unit = {
     executeDML(connect(), s"insert into p1.queries values (${getNextQueryId()}, $user_id, '$query_name', '$query')");
+  }
+
+  def exportQueryResults(query_id : Int, filePath : String) : Unit = {
+    val df : DataFrame = executeQuery(connect(), getQuery(query_id));
+    df.write.option("header", "true").json("temp/");
+    val dir : File = new File("temp/");
+    for (file : File <- dir.listFiles().filter(f => f.getName.endsWith(".json")).sorted) {
+      val writer : FileWriter = new FileWriter(new File(filePath), true);
+      val reader : BufferedReader = new BufferedReader(new FileReader(file));
+      reader.lines().forEachOrdered(line => writer.write(line + System.lineSeparator()));
+      writer.close();
+      reader.close();
+    }
+    dir.listFiles().foreach(f => f.delete());
+    dir.delete();
   }
 
   protected def deleteQuery(query_id : Int) : Unit = {
@@ -1199,6 +1223,14 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
+  def getQuery(query_id : Int) : String = {
+    val df : DataFrame = executeQuery(connect(), s"select query from p1.queries where query_id = $query_id");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getString(0);
+    return "";
+  }
+
   def getQueries() : Map[Int, String] = {
     var result : Map[Int, String] = Map();
     val spark : SparkSession = connect();
@@ -1240,6 +1272,21 @@ object HiveDBManager extends HiveConnection {
 
   protected def saveQuery(user_id : Int, query_name : String, query : String) : Unit = {
     executeDML(connect(), s"insert into p1.queries values (${getNextQueryId()}, $user_id, '$query_name', '$query')");
+  }
+
+  def exportQueryResults(query_id : Int, filePath : String) : Unit = {
+    val df : DataFrame = executeQuery(connect(), getQuery(query_id));
+    df.write.option("header", "true").json("temp/");
+    val dir : File = new File("temp/");
+    for (file : File <- dir.listFiles().filter(f => f.getName.endsWith(".json")).sorted) {
+      val writer : FileWriter = new FileWriter(new File(filePath), true);
+      val reader : BufferedReader = new BufferedReader(new FileReader(file));
+      reader.lines().forEachOrdered(line => writer.write(line + System.lineSeparator()));
+      writer.close();
+      reader.close();
+    }
+    dir.listFiles().foreach(f => f.delete());
+    dir.delete();
   }
 
   protected def deleteQuery(query_id : Int) : Unit = {
@@ -1750,7 +1797,7 @@ object HiveDBManager extends HiveConnection {
         s"$categoriesString"
     );
     executeDML(connect(),
-      s"insert into p1.articlesByYear partition(year=${publish_date.getYear}) select " +
+      s"insert into p1.articles partition(year=${publish_date.getYear}) select " +
         s"${article_id}L, " +
         s"'$authors', " +
         s"'$title', " +

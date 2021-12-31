@@ -26,12 +26,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def setToAdmin(user_id: Int): Unit = super.setToAdmin(user_id);
     override def deleteUser(user_id: Int): Unit = super.deleteUser(user_id);
     override def getNextQueryId(): Int = super.getNextQueryId();
+    override def getQuery(query_id: Int): String = super.getQuery(query_id);
     override def getQueries(): Map[Int, String] = super.getQueries();
     override def queryExists(query_id: Int): Boolean = super.queryExists(query_id);
     override def queryNameExists(query_name : String): Boolean = super.queryNameExists(query_name);
     override def showQuery(query_id: Int): Unit = super.showQuery(query_id);
     override def showQuery(query: String): Unit = super.showQuery(query);
     override def saveQuery(user_id: Int, query_name: String, query: String): Unit = super.saveQuery(user_id, query_name, query);
+    override def exportQueryResults(query_id: Int, filePath: String): Unit = super.exportQueryResults(query_id, filePath);
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
     override def addGame(game_id: Long, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Long, review_count: Long, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
     override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
@@ -202,13 +204,12 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Reviews Over Time" should "show the changes in review ratings 1, 5, 15, and 30 days out from an article" in {
-    Test.saveQuery(1, "Reviews Over Time", "select g.name, a.title, oneDay.rating as 1Day, round((fiveDay.rating - oneDay.rating), 1) as 5Days, round((fifteenDay.rating - fiveDay.rating), 1) as 15Days, round((thirtyDay.rating - fifteenDay.rating), 1) as 30Days from (select a.game_id, a.title, sum(r.score) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 1) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) oneDay, (select a.game_id, a.title, sum(r.score) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 5) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fiveDay, (select a.game_id, a.title, sum(r.score) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 15) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fifteenDay, (select a.game_id, a.title, sum(r.score) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 30) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) thirtyDay, p1.games g, p1.articlesByYear a where g.game_id = a.game_id and g.game_id = oneDay.game_id and g.game_id = fiveDay.game_id and g.game_id = fifteenDay.game_id and g.game_id = thirtyDay.game_id and a.title = oneDay.title and a.title = fiveDay.title and a.title = fifteenDay.title and a.title = thirtyDay.title and a.year = oneDay.year and a.year = fiveDay.year and a.year = fifteenDay.year and a.year = thirtyDay.year order by g.name asc"
-    );
+    Test.saveQuery(1, "Review Median Per Article Over Time", "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days from (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 1) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) oneDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 5) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fiveDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 15) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fifteenDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviewsByYear r, p1.articlesByYear a where r.publish_date between a.publish_date and date_add(a.publish_date, 30) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) thirtyDay, p1.games g, p1.articlesByYear a where g.game_id = a.game_id and g.game_id = oneDay.game_id and g.game_id = fiveDay.game_id and g.game_id = fifteenDay.game_id and g.game_id = thirtyDay.game_id and a.title = oneDay.title and a.title = fiveDay.title and a.title = fifteenDay.title and a.title = thirtyDay.title and a.year = oneDay.year and a.year = fiveDay.year and a.year = fifteenDay.year and a.year = thirtyDay.year order by g.name asc");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
-      "select g.name, a.title, oneDay.rating as 1Day, round((fiveDay.rating - oneDay.rating), 1) as 5Days, round((fifteenDay.rating - fiveDay.rating), 1) as 15Days, round((thirtyDay.rating - fifteenDay.rating), 1) as 30Days " +
+      "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days " +
       "from (" +
-        "select a.game_id, a.title, sum(r.score) as rating, a.year " +
+        "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
         "from p1.reviewsByYear r, p1.articlesByYear a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 1) " +
           "and a.game_id = r.game_id " +
@@ -216,7 +217,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "group by a.game_id, a.title, a.year " +
         "order by a.game_id asc, a.year desc" +
       ") oneDay, (" +
-        "select a.game_id, a.title, sum(r.score) as rating, a.year " +
+        "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
         "from p1.reviewsByYear r, p1.articlesByYear a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 5) " +
           "and a.game_id = r.game_id " +
@@ -224,7 +225,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "group by a.game_id, a.title, a.year " +
         "order by a.game_id asc, a.year desc" +
       ") fiveDay, (" +
-        "select a.game_id, a.title, sum(r.score) as rating, a.year " +
+        "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
         "from p1.reviewsByYear r, p1.articlesByYear a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 15) " +
           "and a.game_id = r.game_id " +
@@ -232,7 +233,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
         "group by a.game_id, a.title, a.year " +
         "order by a.game_id asc, a.year desc" +
       ") fifteenDay, (" +
-        "select a.game_id, a.title, sum(r.score) as rating, a.year " +
+        "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
         "from p1.reviewsByYear r, p1.articlesByYear a " +
         "where r.publish_date between a.publish_date and date_add(a.publish_date, 30) " +
           "and a.game_id = r.game_id " +
@@ -384,6 +385,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getNextQueryId() > 0);
   }
 
+  "getQuery(Int)" should "return the actual SQL query stored in the queries table with the given query_id" in {
+    val queries : Map[Int, String] = Test.getQueries();
+    if (queries.nonEmpty)
+      assert(Test.getQuery(queries.keys.head).nonEmpty);
+    else
+      assert(false);
+  }
+
   "getQueries()" should "return a list of query IDs and names from the queries table" in {
     if (Test.getQueries().isEmpty)
       assert(true);
@@ -421,6 +430,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     assert(Test.getQueries().isEmpty);
     Test.saveQuery(Test.authenticate("admin", "admin", true), "test", "select * from p1.users");
     assert(Test.getQueries().nonEmpty);
+  }
+
+  "exportQueryResults(Int, String)" should "save the results of the query with the given query_id to the file located in the given filePath String" in {
+    Test.exportQueryResults(Test.getQueries().head._1, "test.json");
   }
 
   "deleteQuery(Int)" should "delete the query with the passed-in query_id from the queries table" in {
