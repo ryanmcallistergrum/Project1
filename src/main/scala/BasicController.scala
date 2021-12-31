@@ -90,38 +90,38 @@ object BasicController {
         var userInput: Int = -1;
         for (query : Int <- queries.keys.toList.sorted)
           println(s"$query. ${queries(query)}");
-        do {
-          print("Please select a query to execute, or enter 0 to return to the User Menu: ");
-          try {
-            userInput = readInt();
-            if (!queries.keySet.contains(userInput) && userInput != 0)
-              println("Invalid query identifier! Please try again.");
-          } catch {
-            case nfe : NumberFormatException => {
-              println("Invalid number entered! Please try again.");
+          do {
+            print("Please select a query to execute, or enter 0 to return to the User Menu: ");
+            try {
+              userInput = readInt();
+              if (!queries.keySet.contains(userInput) && userInput != 0)
+                println("Invalid query identifier! Please try again.");
+            } catch {
+              case nfe : NumberFormatException => {
+                println("Invalid number entered! Please try again.");
+              }
+            }
+          } while (userInput == -1);
+
+          if (userInput == 0)
+            state = "User Menu";
+          else if (!HiveDBManager.queryExists(userInput)) {
+            println("Query deleted between selection and execution! Please select another query or notify an administrator.")
+            print("Press enter when ready to continue...");
+            readLine();
+          } else {
+            HiveDBManager.showQuery(userInput);
+            print("Press enter when ready to continue...");
+            println();
+            val choice : String = readLine("Would you like to save the results of the query? Enter 'y' to continue or anything else to skip: ");
+            if (choice.toLowerCase().equals("y")) {
+              val filePath : String = readLine("Please enter the either the local filename or the full file path (enter nothing to skip): ");
+              if (filePath.nonEmpty)
+                HiveDBManager.exportQueryResults(userInput, filePath);
             }
           }
-        } while (userInput == -1);
 
-        if (userInput == 0)
-          state = "User Menu";
-        else if (!HiveDBManager.queryExists(userInput)) {
-          println("Query deleted between selection and execution! Please select another query or notify an administrator.")
-          print("Press enter when ready to continue...");
-          readLine();
-        } else {
-          HiveDBManager.showQuery(userInput);
-          print("Press enter when ready to continue...");
-          println();
-          val choice : String = readLine("Would you like to save the results of the query? Enter 'y' to continue or anything else to skip: ");
-          if (choice.toLowerCase().equals("y")) {
-            val filePath : String = readLine("Please enter the either the local filename or the full file path (enter nothing to skip): ");
-            if (filePath.nonEmpty)
-              HiveDBManager.exportQueryResults(userInput, filePath);
-          }
-        }
-
-        userInput = -1;
+          userInput = -1;
       }
     }
   }
