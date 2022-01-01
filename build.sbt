@@ -11,6 +11,10 @@ libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.10"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % "test"
 libraryDependencies += "com.outr" %% "hasher" % "1.2.2"
 
+assemblyJarName := "Project1 v0.1.jar"
+
+test in assembly := {}
+
 lazy val root = (project in file("."))
   .settings(
     name := "Project1",
