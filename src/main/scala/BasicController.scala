@@ -101,7 +101,7 @@ object BasicController {
                 println("Invalid number entered! Please try again.");
               }
             }
-          } while (userInput == -1);
+          } while (!queries.keySet.contains(userInput) && userInput != 0);
 
           if (userInput == 0)
             state = "User Menu";
