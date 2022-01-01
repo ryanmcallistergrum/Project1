@@ -293,9 +293,10 @@ class APIFetcher extends GamespotAPI {
       setFormat(false, true, false);
       sortField("id", true);
       filterField("release_date", ":", startDate.toLocalDate + "|" + endDate.toLocalDate);
+      setOffset(if (HiveDBManager.getGameCountBetween(startDate, endDate) == 0) 0 else HiveDBManager.getGameCountBetween(startDate, endDate) - 1);
       var gameJson: Value = ujson.read(getResults());
       if (gameJson("error").str.equals("OK")) {
-        var offset : Long = 0L;
+        var offset : Long = if (HiveDBManager.getGameCountBetween(startDate, endDate) == 0) 0 else HiveDBManager.getGameCountBetween(startDate, endDate) - 1;
         val totalResults: Long = gameJson("number_of_total_results").num.toLong;
         if (totalResults > 0) {
           while (offset < totalResults && running) {
@@ -357,7 +358,7 @@ class APIFetcher extends GamespotAPI {
 
       if (running && game != null) {
         Thread.sleep(1000)
-        reviewOffset = HiveDBManager.getGameReviewCount(game._1);
+        reviewOffset = 0L;
         setURL(game._7, false, false, true);
         setFormat(false, true, false);
         sortField("id", true);
