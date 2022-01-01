@@ -19,8 +19,7 @@ object AdminView {
 
   def manageUsers() : Unit = {
     println("Welcome to the User Management Menu. Please select from one of the following options:");
-    println("1. View Users");
-    println("2. Delete User");
-    println("3. Promote Basic User to Admin");
+    println("1. Delete Basic User");
+    println("2. Promote Basic User to Admin");
   }
 }
