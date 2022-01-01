@@ -1,7 +1,7 @@
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import com.roundeights.hasher.Implicits._
 
-import java.io.{BufferedReader, File, FileFilter, FileReader, FileWriter}
+import java.io.{BufferedReader, File, FileReader, FileWriter}
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -264,7 +264,7 @@ class HiveDBManager extends HiveConnection {
     if (queries.isEmpty)
       return false;
     else
-      return queries.values.find(q => q.equals(query_name)).get.nonEmpty;
+      return queries.values.exists(q => q.equals(query_name));
   }
 
   def showQuery(query_id : Int) : Unit = {
@@ -1155,7 +1155,7 @@ object HiveDBManager extends HiveConnection {
     if (queries.isEmpty)
       return false;
     else
-      return queries.values.find(q => q.equals(query_name)).get.nonEmpty;
+      return queries.values.exists(q => q.equals(query_name));
   }
 
   def showQuery(query_id : Int) : Unit = {
