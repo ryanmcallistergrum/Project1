@@ -94,7 +94,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands2" should "only be used FOR TESTING" in {
-    val spark : SparkSession = Test.connect();
+    /*val spark : SparkSession = Test.connect();
     Test.createReviewsCopy("p1.reviewsTemp");
     Test.executeDML(spark, s"insert into p1.reviewsTemp select * from p1.reviewsByYear");
     Test.executeDML(spark, "drop table p1.reviews");
@@ -105,7 +105,8 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     Test.executeDML(spark, s"insert into p1.articlesTemp select * from p1.articlesByYear");
     Test.executeDML(spark, "drop table p1.articles");
     Test.executeDML(spark, "drop table p1.articlesByYear");
-    Test.executeDML(spark, "alter table p1.articlesTemp rename to articles");
+    Test.executeDML(spark, "alter table p1.articlesTemp rename to articles");*/
+    Test.executeDML(Test.connect(), "truncate table p1.queries");
   }
 
   "Most Mentioned" should "show the most-mentioned game each year and month" in {
@@ -175,11 +176,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Articles With Cheats" should "show articles with cheats mentioned somewhere" in {
-    Test.saveQuery(1,"Articles With Cheats", "select g.name, a.title, regexp_extract(a.body, \\'(Cheat(s|er|ers|ing)?([^\\.]|.net)+\\.|[A-Z][^A-Z\\.]+cheat(s|er|ers|ing)?([^\\.]|.net)+\\.)\\', 1) as sentence from p1.games g, p1.articles a where g.game_id = a.game_id and a.body rlike \\'[Cc]heat(s|er|ers|ing)?\\' order by g.name, a.title"
-    );
+    Test.saveQuery(1,"Articles With Cheats", "select distinct g.name, a.title, regexp_extract(a.body, \\'(Cheat(s|er|ers|ing)?([^\\.]|.net)?\\.|[A-Z][^A-Z\\.]+cheat(s|er|ers|ing)?([^\\.]|.net)?\\.)\\', 1) as sentence from p1.games g, p1.articles a where g.game_id = a.game_id and a.body rlike \\'[Cc]heat(s|er|ers|ing)?\\' order by g.name, a.title");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
-      "select g.name, a.title, regexp_extract(a.body, '(Cheat(s|er|ers|ing)?([^\\.]|.net)+\\.|[A-Z][^A-Z\\.]+cheat(s|er|ers|ing)?([^\\.]|.net)+\\.)', 1) as sentence " +
+      "select distinct g.name, a.title, regexp_extract(a.body, '(Cheat(s|er|ers|ing)?([^\\.]|.net)+\\.|[A-Z][^A-Z\\.]+cheat(s|er|ers|ing)?([^\\.]|.net)?\\.)', 1) as sentence " +
       "from p1.games g, p1.articles a " +
       "where g.game_id = a.game_id " +
         "and a.body rlike '[Cc]heat(s|er|ers|ing)?' " +
@@ -215,10 +215,10 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "Reviews Over Time" should "show the changes in review ratings 1, 5, 15, and 30 days out from an article" in {
-    Test.saveQuery(1, "Review Median Per Article Over Time", "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days from (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 1) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) oneDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 5) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fiveDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 15) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fifteenDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 30) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) thirtyDay, p1.games g, p1.articles a where g.game_id = a.game_id and g.game_id = oneDay.game_id and g.game_id = fiveDay.game_id and g.game_id = fifteenDay.game_id and g.game_id = thirtyDay.game_id and a.title = oneDay.title and a.title = fiveDay.title and a.title = fifteenDay.title and a.title = thirtyDay.title and a.year = oneDay.year and a.year = fiveDay.year and a.year = fifteenDay.year and a.year = thirtyDay.year order by g.name asc");
+    Test.saveQuery(1, "Review Median Per Article Over Time", "select distinct g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days from (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 1) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 1)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) oneDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 5) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 5)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fiveDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 15) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 15)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) fifteenDay, (select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year from p1.reviews r, p1.articles a where r.publish_date between a.publish_date and date_add(a.publish_date, 30) and a.game_id = r.game_id and r.year between year(a.publish_date) and year(date_add(a.publish_date, 30)) group by a.game_id, a.title, a.year order by a.game_id asc, a.year desc) thirtyDay, p1.games g, p1.articles a where g.game_id = a.game_id and g.game_id = oneDay.game_id and g.game_id = fiveDay.game_id and g.game_id = fifteenDay.game_id and g.game_id = thirtyDay.game_id and a.title = oneDay.title and a.title = fiveDay.title and a.title = fifteenDay.title and a.title = thirtyDay.title and a.year = oneDay.year and a.year = fiveDay.year and a.year = fifteenDay.year and a.year = thirtyDay.year order by g.name asc");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
-      "select g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days " +
+      "select distinct g.name, a.title, oneDay.rating as 1Day, fiveDay.rating as 5Days, fifteenDay.rating as 15Days, thirtyDay.rating as 30Days " +
       "from (" +
         "select a.game_id, a.title, percentile_approx(r.score, 0.5) as rating, a.year " +
         "from p1.reviews r, p1.articles a " +
@@ -272,26 +272,16 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "New Releases, Reviews, and Articles Since 2021" should "show games that have been newly released along with games that have had new reviews and articles, and how many from a given date, since the start of 2021" in {
-    Test.saveQuery(1, "New Releases, Reviews, and Articles Since 2021", "select g.name, (case when g.release_date <= \\'2021-01-01\\' then false else true end) as released, counts.articleCount, counts.reviewCount from p1.games g, (select game_id, count(publish_date) as articleCount, 0 as reviewCount from p1.articles where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id union select game_id, 0 as articleCount, count(publish_date) as reviewCount from p1.reviews where publish_date >= \\'2021-01-01\\' and year >= year(\\'2021-01-01\\') group by game_id order by game_id) counts where g.game_id = counts.game_id order by g.name"
-    );
+    Test.saveQuery(1, "New Releases, Reviews, and Articles Since 2021", "select g.name, (case when g.release_date <= \\'2021-01-01\\' then false else true end) as released, (select count(publish_date) from p1.articles where publish_date >= \\'2021-01-01\\' and game_id = g.game_id and year >= year(\\'2021-01-01\\')) as articleCount, (select count(publish_date) from p1.reviews where publish_date >= \\'2021-01-01\\' and game_id = g.game_id and year >= year(\\'2021-01-01\\')) as reviewCount from p1.games g where (select count(publish_date) from p1.articles where publish_date >= \\'2021-01-01\\' and game_id = g.game_id and year >= year(\\'2021-01-01\\')) > 0 or (select count(publish_date) from p1.reviews where publish_date >= \\'2021-01-01\\' and game_id = g.game_id and year >= year(\\'2021-01-01\\')) > 0 or (case when g.release_date <= \\'2021-01-01\\' then false else true end) = true order by g.name");
     /*val spark : SparkSession = Test.connect();
     val df : DataFrame = Test.executeQuery(spark,
-      "select g.name, (case when g.release_date <= '2021-01-01' then false else true end) as released, counts.articleCount, counts.reviewCount " +
-      "from p1.games g, ( " +
-        "select game_id, count(publish_date) as articleCount, 0 as reviewCount " +
-        "from p1.articles " +
-        "where publish_date >= '2021-01-01' " +
-          "and year >= year('2021-01-01') " +
-        "group by game_id " +
-        "union " +
-        "select game_id, 0 as articleCount, count(publish_date) as reviewCount " +
-        "from p1.reviews " +
-        "where publish_date >= '2021-01-01' " +
-          "and year >= year('2021-01-01') " +
-        "group by game_id " +
-        "order by game_id" +
-      ") counts " +
-      "where g.game_id = counts.game_id " +
+      "select g.name, (case when g.release_date <= '2021-01-01' then false else true end) as released, " +
+        "(select count(publish_date) from p1.articles where publish_date >= '2021-01-01' and game_id = g.game_id and year >= year('2021-01-01')) as articleCount, " +
+        "(select count(publish_date) from p1.reviews where publish_date >= '2021-01-01' and game_id = g.game_id and year >= year('2021-01-01')) as reviewCount " +
+      "from p1.games g " +
+      "where (select count(publish_date) from p1.articles where publish_date >= '2021-01-01' and game_id = g.game_id and year >= year('2021-01-01')) > 0 " +
+        "or (select count(publish_date) from p1.reviews where publish_date >= '2021-01-01' and game_id = g.game_id and year >= year('2021-01-01')) > 0 " +
+        "or (case when g.release_date <= '2021-01-01' then false else true end) = true " +
       "order by g.name"
     );
     df.show(Int.MaxValue, false);
