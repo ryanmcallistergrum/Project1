@@ -622,6 +622,124 @@ class APIFetcher extends GamespotAPI {
     }
   }
 
+  def getAllGameGenres() : Unit = {
+    while (running && getAPIKey().isEmpty)
+      try {
+        val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
+        setAPIKey(map("apiKey"));
+      } catch {
+        case n : NullPointerException => {
+          n.printStackTrace();
+          Thread.sleep(5000);
+        }
+        case io : IOException => {
+          io.printStackTrace();
+          Thread.sleep(5000);
+        }
+      }
+
+    if (running) {
+      init();
+      selectEndpoint(true, false, false);
+      setFormat(false, true, false);
+      sortField("id", true);
+      var gameJson : Value = ujson.read(getResults());
+      if (gameJson("error").str.equals("OK")) {
+        var offset : Long = 0L;
+        gameTotalResults = gameJson("number_of_total_results").num.toLong;
+        while(offset < gameTotalResults && running) {
+          var i : Int = 0;
+          while(i < gameJson("number_of_page_results").num.toInt && running) {
+            for (j: Int <- gameJson("results")(0)("genres").arr.indices)
+              if (!HiveDBManager.genreExists(gameJson("results")(0)("genres").arr(j)("id").num.toLong)) {
+                HiveDBManager.addGenre(
+                  gameJson("results")(0)("genres").arr(j)("id").num.toLong,
+                  gameJson("results")(0)("genres").arr(j)("name").str.replace("'", "''")
+                );
+                if (output && running)
+                  outputFinding(s"Added genre ${gameJson("results")(0)("genres").arr(j)("id").num.toLong} ${gameJson("results")(0)("genres").arr(j)("name").str.replace("'", "''")}.");
+              }
+            i += 1;
+          }
+          offset += gameJson("number_of_page_results").num.toLong;
+
+          if (running) {
+            Thread.sleep(1000);
+            init();
+            selectEndpoint(true, false, false);
+            setFormat(false, true, false);
+            sortField("id", true);
+            setOffset(offset);
+            gameJson = ujson.read(getResults());
+            if (gameJson("error").str.equals("OK")) {
+              outputFinding("Error while fetching from API! " + gameJson("error").str);
+              running = false;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def getAllGameThemes() : Unit = {
+    while (running && getAPIKey().isEmpty)
+      try {
+        val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
+        setAPIKey(map("apiKey"));
+      } catch {
+        case n : NullPointerException => {
+          n.printStackTrace();
+          Thread.sleep(5000);
+        }
+        case io : IOException => {
+          io.printStackTrace();
+          Thread.sleep(5000);
+        }
+      }
+
+    if (running) {
+      init();
+      selectEndpoint(true, false, false);
+      setFormat(false, true, false);
+      sortField("id", true);
+      var gameJson : Value = ujson.read(getResults());
+      if (gameJson("error").str.equals("OK")) {
+        var offset : Long = 0L;
+        gameTotalResults = gameJson("number_of_total_results").num.toLong;
+        while(offset < gameTotalResults && running) {
+          var i : Int = 0;
+          while(i < gameJson("number_of_page_results").num.toInt && running) {
+            for (j: Int <- gameJson("results")(0)("themes").arr.indices)
+              if (!HiveDBManager.themeExists(gameJson("results")(0)("themes").arr(j)("id").num.toLong)) {
+                HiveDBManager.addTheme(
+                  gameJson("results")(0)("themes").arr(j)("id").num.toLong,
+                  gameJson("results")(0)("themes").arr(j)("name").str.replace("'", "''")
+                );
+                if (output && running)
+                  outputFinding(s"Added theme ${gameJson("results")(0)("themes").arr(j)("id").num.toLong} ${gameJson("results")(0)("themes").arr(j)("name").str.replace("'", "''")}.");
+              }
+            i += 1;
+          }
+          offset += gameJson("number_of_page_results").num.toLong;
+
+          if (running) {
+            Thread.sleep(1000);
+            init();
+            selectEndpoint(true, false, false);
+            setFormat(false, true, false);
+            sortField("id", true);
+            setOffset(offset);
+            gameJson = ujson.read(getResults());
+            if (gameJson("error").str.equals("OK")) {
+              outputFinding("Error while fetching from API! " + gameJson("error").str);
+              running = false;
+            }
+          }
+        }
+      }
+    }
+  }
+
   def outputFindings() : Unit = {
     output = true;
   }

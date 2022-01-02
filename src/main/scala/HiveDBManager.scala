@@ -1083,11 +1083,11 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  protected def addGenre(genre_id : Long, genre : String) : Unit = {
+  def addGenre(genre_id : Long, genre : String) : Unit = {
     executeDML(connect(), s"insert into p1.genres values ($genre_id, '$genre')");
   }
 
-  protected def genreExists(genre_id : Long) : Boolean = {
+  def genreExists(genre_id : Long) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.genres where genre_id = $genre_id limit 1");
     return !df.isEmpty;
   }
@@ -1117,11 +1117,11 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  protected def addTheme(theme_id : Long, theme : String) : Unit = {
+  def addTheme(theme_id : Long, theme : String) : Unit = {
     executeDML(connect(), s"insert into p1.themes values ($theme_id, '$theme')");
   }
 
-  protected def themeExists(theme_id : Long) : Boolean = {
+  def themeExists(theme_id : Long) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.themes where theme_id = $theme_id limit 1");
     return !df.isEmpty;
   }
@@ -2227,11 +2227,11 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  protected def addGenre(genre_id : Long, genre : String) : Unit = {
+  def addGenre(genre_id : Long, genre : String) : Unit = {
     executeDML(connect(), s"insert into p1.genres values ($genre_id, '$genre')");
   }
 
-  protected def genreExists(genre_id : Long) : Boolean = {
+  def genreExists(genre_id : Long) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.genres where genre_id = $genre_id limit 1");
     return !df.isEmpty;
   }
@@ -2261,11 +2261,11 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  protected def addTheme(theme_id : Long, theme : String) : Unit = {
+  def addTheme(theme_id : Long, theme : String) : Unit = {
     executeDML(connect(), s"insert into p1.themes values ($theme_id, '$theme')");
   }
 
-  protected def themeExists(theme_id : Long) : Boolean = {
+  def themeExists(theme_id : Long) : Boolean = {
     val df : DataFrame = executeQuery(connect(), s"select * from p1.themes where theme_id = $theme_id limit 1");
     return !df.isEmpty;
   }
