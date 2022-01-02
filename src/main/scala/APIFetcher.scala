@@ -642,7 +642,7 @@ class APIFetcher extends GamespotAPI {
       init();
       selectEndpoint(true, false, false);
       setFormat(false, true, false);
-      sortField("id", true);
+      fieldList(List("genres"));
       var gameJson : Value = ujson.read(getResults());
       if (gameJson("error").str.equals("OK")) {
         var offset : Long = 0L;
@@ -650,14 +650,14 @@ class APIFetcher extends GamespotAPI {
         while(offset < gameTotalResults && running) {
           var i : Int = 0;
           while(i < gameJson("number_of_page_results").num.toInt && running) {
-            for (j: Int <- gameJson("results")(0)("genres").arr.indices)
-              if (!HiveDBManager.genreExists(gameJson("results")(0)("genres").arr(j)("id").num.toLong)) {
+            for (j: Int <- gameJson("results")(i)("genres").arr.indices)
+              if (!HiveDBManager.genreExists(gameJson("results")(i)("genres").arr(j)("id").num.toLong)) {
                 HiveDBManager.addGenre(
-                  gameJson("results")(0)("genres").arr(j)("id").num.toLong,
-                  gameJson("results")(0)("genres").arr(j)("name").str.replace("'", "''")
+                  gameJson("results")(i)("genres").arr(j)("id").num.toLong,
+                  gameJson("results")(i)("genres").arr(j)("name").str.replace("'", "''")
                 );
                 if (output && running)
-                  outputFinding(s"Added genre ${gameJson("results")(0)("genres").arr(j)("id").num.toLong} ${gameJson("results")(0)("genres").arr(j)("name").str.replace("'", "''")}.");
+                  outputFinding(s"Added genre ${gameJson("results")(i)("genres").arr(j)("id").num.toLong} ${gameJson("results")(i)("genres").arr(j)("name").str.replace("'", "''")}.");
               }
             i += 1;
           }
@@ -668,7 +668,7 @@ class APIFetcher extends GamespotAPI {
             init();
             selectEndpoint(true, false, false);
             setFormat(false, true, false);
-            sortField("id", true);
+            fieldList(List("genres"));
             setOffset(offset);
             gameJson = ujson.read(getResults());
             if (gameJson("error").str.equals("OK")) {
@@ -701,7 +701,7 @@ class APIFetcher extends GamespotAPI {
       init();
       selectEndpoint(true, false, false);
       setFormat(false, true, false);
-      sortField("id", true);
+      fieldList(List("themes"));
       var gameJson : Value = ujson.read(getResults());
       if (gameJson("error").str.equals("OK")) {
         var offset : Long = 0L;
@@ -709,14 +709,14 @@ class APIFetcher extends GamespotAPI {
         while(offset < gameTotalResults && running) {
           var i : Int = 0;
           while(i < gameJson("number_of_page_results").num.toInt && running) {
-            for (j: Int <- gameJson("results")(0)("themes").arr.indices)
-              if (!HiveDBManager.themeExists(gameJson("results")(0)("themes").arr(j)("id").num.toLong)) {
+            for (j: Int <- gameJson("results")(i)("themes").arr.indices)
+              if (!HiveDBManager.themeExists(gameJson("results")(i)("themes").arr(j)("id").num.toLong)) {
                 HiveDBManager.addTheme(
-                  gameJson("results")(0)("themes").arr(j)("id").num.toLong,
-                  gameJson("results")(0)("themes").arr(j)("name").str.replace("'", "''")
+                  gameJson("results")(i)("themes").arr(j)("id").num.toLong,
+                  gameJson("results")(i)("themes").arr(j)("name").str.replace("'", "''")
                 );
                 if (output && running)
-                  outputFinding(s"Added theme ${gameJson("results")(0)("themes").arr(j)("id").num.toLong} ${gameJson("results")(0)("themes").arr(j)("name").str.replace("'", "''")}.");
+                  outputFinding(s"Added theme ${gameJson("results")(i)("themes").arr(j)("id").num.toLong} ${gameJson("results")(i)("themes").arr(j)("name").str.replace("'", "''")}.");
               }
             i += 1;
           }
@@ -727,7 +727,7 @@ class APIFetcher extends GamespotAPI {
             init();
             selectEndpoint(true, false, false);
             setFormat(false, true, false);
-            sortField("id", true);
+            fieldList(List("themes"));
             setOffset(offset);
             gameJson = ujson.read(getResults());
             if (gameJson("error").str.equals("OK")) {
