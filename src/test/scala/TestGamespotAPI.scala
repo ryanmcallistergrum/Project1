@@ -26,6 +26,7 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     override def setFormat(xml : Boolean, json : Boolean, jsonp : Boolean) : Unit = super.setFormat(xml, json, jsonp);
     override def setOffset(offset : Long) : Unit = super.setOffset(offset);
     override def setLimit(limit : Int) : Unit = super.setLimit(limit);
+    override def fieldList(fields: List[String]): Unit = super.fieldList(fields);
     override def filterField(fieldName : String, separator : String, value : String) : Unit = super.filterField(fieldName, separator, value);
     override def filterField(fieldName : String, separator : String, value : Int) : Unit = super.filterField(fieldName, separator, value);
     override def sortField(fieldName : String, asc : Boolean) : Unit = super.sortField(fieldName, asc);
@@ -195,6 +196,14 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     Test.init();
     Test.setLimit(101);
     assert(Test.getRequest().params.isEmpty);
+  }
+
+  "fieldList(List[String])" should "add a param containing the list of fields to return" in {
+    val list : List[String] = List("genres", "videos_api_url");
+    Test.init();
+    Test.selectEndpoint(true, false, false);
+    Test.fieldList(list);
+    assert(Test.getRequest().params.contains(("field_list", list.reduce(_ + "," + _))));
   }
 
   "filterField(String, String)" should "add a param containing the fieldName and value" in {

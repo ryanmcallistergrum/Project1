@@ -109,6 +109,15 @@ class GamespotAPI {
       request = request.params(("limit", num.toString));
   }
 
+  protected def fieldList(fields : List[String]) : Unit = {
+    if (
+      (articles && fields.forall(f => articleFields.contains(f))) ||
+      (games && fields.forall(f => gameFields.contains(f))) ||
+      (reviews && fields.forall(f => reviewFields.contains(f)))
+    )
+      request = request.params(("field_list", fields.reduce(_ + "," + _)));
+  }
+
   protected def filterField(fieldName : String, separator : String, value : String) : Unit = {
     if (
       (articles && articleFilterFields.contains(fieldName)) ||
