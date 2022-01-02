@@ -12,8 +12,18 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def showQuery(spark: SparkSession, sql: String): Unit = super.showQuery(spark, sql);
     override def createDB() : Unit = super.createDB();
     override def startupDB() : Unit = super.startupDB();
-    override def createReviewsCopy(table_name: String): Unit = super.createReviewsCopy(table_name);
+    override def createGamesCopy(table_name: String): Unit = super.createGamesCopy(table_name);
+    override def createGameThemesCopy(table_name: String): Unit = super.createGameThemesCopy(table_name);
+    override def createThemesCopy(table_name: String): Unit = super.createThemesCopy(table_name);
+    override def createGameGenresCopy(table_name: String): Unit = super.createGameGenresCopy(table_name);
+    override def createGenresCopy(table_name: String): Unit = super.createGenresCopy(table_name);
     override def createArticlesCopy(table_name: String): Unit = super.createArticlesCopy(table_name);
+    override def createArticleAuthorsCopy(table_name: String): Unit = super.createArticleAuthorsCopy(table_name);
+    override def createArticleCategoriesCopy(table_name: String): Unit = super.createArticleCategoriesCopy(table_name);
+    override def createCategoriesCopy(table_name: String): Unit = super.createCategoriesCopy(table_name);
+    override def createReviewsCopy(table_name: String): Unit = super.createReviewsCopy(table_name);
+    override def createReviewAuthorsCopy(table_name: String): Unit = super.createReviewAuthorsCopy(table_name);
+    override def createAuthorsCopy(table_name: String): Unit = super.createAuthorsCopy(table_name);
     override def getNextUserId(): Int = super.getNextUserId()
     override def getUsers(): List[(Int, String, String, Boolean)] = super.getUsers();
     override def authenticate(username: String, password: String, isAdmin: Boolean): Int = super.authenticate(username, password, isAdmin);
@@ -35,26 +45,24 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def saveQuery(user_id: Int, query_name: String, query: String): Unit = super.saveQuery(user_id, query_name, query);
     override def exportQueryResults(query_id: Int, filePath: String): Unit = super.exportQueryResults(query_id, filePath);
     override def deleteQuery(query_id: Int): Unit = super.deleteQuery(query_id);
-    override def addGame(game_id: Long, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, avg_score: Double, article_count: Long, review_count: Long, genres: List[String], themes: List[String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, avg_score, article_count, review_count, genres, themes);
-    override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])]): Unit = super.addGames(games);
-    override def getGame(game_id: Long, year : String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_id, year);
-    override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getGame(game_name);
+    override def addGame(game_id: Long, name: String, release_date: LocalDateTime, deck: String, description: String, articles_api_url: String, reviews_api_url: String, article_count: Long, review_count: Long, genres: Map[Long, String], themes: Map[Long, String]): Unit = super.addGame(game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count, genres, themes);
+    override def addGames(games: List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])]): Unit = super.addGames(games);
+    override def getGame(game_id: Long, year : String): (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = super.getGame(game_id, year);
+    override def getGame(game_name: String): (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = super.getGame(game_name);
     override def gameExists(game_id: Long, year: String): Boolean = super.gameExists(game_id, year);
-    override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGamesBetween(startDate, endDate);
-    override def getMaxGameBetween(startDate: LocalDateTime, endDate: LocalDateTime): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getMaxGameBetween(startDate, endDate);
+    override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = super.getGamesBetween(startDate, endDate);
+    override def getMaxGameBetween(startDate: LocalDateTime, endDate: LocalDateTime): (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = super.getMaxGameBetween(startDate, endDate);
     override def getGameCountBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long = super.getGameCountBetween(startDate, endDate);
-    override def getMaxGame(): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.getMaxGame();
-    override def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.getGames();
+    override def getMaxGame(): (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = super.getMaxGame();
+    override def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = super.getGames();
     override def getGameCount(): Long = super.getGameCount();
     override def calculateAvgScore(game_id: Long): Double = super.calculateAvgScore(game_id);
-    override def getAvgScore(game_id : Long, year : String) : Double = super.getAvgScore(game_id, year);
-    override def updateAvgScore(game_id: Long, year : String, newScore: Double): Double = super.updateAvgScore(game_id, year, newScore);
     override def getPreviousGameArticleCount(game_id: Long, year : String): Long = super.getPreviousGameArticleCount(game_id, year);
     override def updateArticleCount(game_id: Long, year : String, newArticleCount: Long): Long = super.updateArticleCount(game_id, year, newArticleCount);
     override def getPreviousGameReviewCount(game_id: Long, year : String): Long = super.getPreviousGameReviewCount(game_id, year);
     override def updateReviewCount(game_id: Long, year : String, newReviewCount: Long): Long = super.updateReviewCount(game_id, year, newReviewCount);
-    override def deleteGame(game_id: Long, year : String): (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = super.deleteGame(game_id, year);
-    override def deleteGames(games: Map[Long, String]): List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = super.deleteGames(games);
+    override def deleteGame(game_id: Long, year : String): (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = super.deleteGame(game_id, year);
+    override def deleteGames(games: Map[Long, String]): List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = super.deleteGames(games);
     override def addReview(review_id: Long, authors: String, title: String, deck: String, lede: String, body: String, publish_date: LocalDateTime, update_date: LocalDateTime, score: Double, review_type: String, game_id: Long): Unit = super.addReview(review_id, authors, title, deck, lede, body, publish_date, update_date, score, review_type, game_id);
     override def addReviews(reviews: List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Double, String, Long)]): Unit = super.addReviews(reviews);
     override def reviewExists(review_id: Long, year : String): Boolean = super.reviewExists(review_id, year);
@@ -70,27 +78,35 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def getGameArticleCount(game_id: Long): Long = super.getGameArticleCount(game_id);
     override def getGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.getGameArticles(game_id);
     override def deleteGameArticles(game_id: Long): List[(Long, String, String, String, String, String, LocalDateTime, LocalDateTime, Map[Long, String], Long)] = super.deleteGameArticles(game_id);
+    override def addAuthor(author: String): Long = super.addAuthor(author);
+    override def authorExists(author: String): Boolean = super.authorExists(author);
+    override def getAuthorId(author: String): Long = super.getAuthorId(author);
+    override def getNextAuthorId(): Long = super.getNextAuthorId();
+    override def addArticleAuthor(article_id: Long, author_id: Long): Unit = super.addArticleAuthor(article_id, author_id);
+    override def getArticleAuthors(article_id: Long): String = super.getArticleAuthors(article_id);
+    override def deleteArticleAuthors(article_id: Long): String = super.deleteArticleAuthors(article_id);
+    override def addReviewAuthor(review_id: Long, author_id: Long): Unit = super.addReviewAuthor(review_id, author_id);
+    override def getReviewAuthors(review_id: Long): String = super.getReviewAuthors(review_id);
+    override def deleteReviewAuthors(review_id: Long): String = super.deleteReviewAuthors(review_id);
+    override def addCategory(category_id: Long, category: String): Unit = super.addCategory(category_id, category);
+    override def categoryExists(category_id: Long): Boolean = super.categoryExists(category_id);
+    override def addArticleCategory(article_id: Long, category_id: Long): Unit = super.addArticleCategory(article_id, category_id);
+    override def getArticleCategories(article_id: Long): Map[Long, String] = super.getArticleCategories(article_id);
+    override def deleteArticleCategories(article_id: Long): Map[Long, String] = super.deleteArticleCategories(article_id);
+    override def addGenre(genre_id: Long, genre: String): Unit = super.addGenre(genre_id, genre);
+    override def genreExists(genre_id: Long): Boolean = super.genreExists(genre_id);
+    override def addGameGenre(game_id: Long, genre_id: Long): Unit = super.addGameGenre(game_id, genre_id);
+    override def getGameGenres(game_id: Long): Map[Long, String] = super.getGameGenres(game_id);
+    override def deleteGameGenres(game_id: Long): Map[Long, String] = super.deleteGameGenres(game_id);
+    override def addTheme(theme_id: Long, theme: String): Unit = super.addTheme(theme_id, theme);
+    override def themeExists(theme_id: Long): Boolean = super.themeExists(theme_id);
+    override def addGameTheme(game_id: Long, theme_id: Long): Unit = super.addGameTheme(game_id, theme_id);
+    override def getGameThemes(game_id: Long): Map[Long, String] = super.getGameThemes(game_id);
+    override def deleteGameThemes(game_id: Long): Map[Long, String] = super.deleteGameThemes(game_id);
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
-    for(game : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) <- Test.getGames()) {
-      val id : Long = game._1;
-      val year : String = game._3.getYear.toString;
-      val previousReviewCount : Long = Test.getPreviousGameReviewCount(game._1, game._3.getYear.toString);
-      val reviewCount : Long = Test.getGameReviewCount(game._1);
-      val previousArticleCount : Long = Test.getPreviousGameArticleCount(game._1, game._3.getYear.toString);
-      val articleCount : Long = Test.getGameArticleCount(game._1);
-      val previousAvgScore : Double = Test.getAvgScore(game._1, game._3.getYear.toString);
-      val avgScore : Double = Test.calculateAvgScore(game._1);
 
-      if (previousReviewCount != reviewCount)
-        Test.updateReviewCount(id, year, reviewCount);
-      if (previousArticleCount != articleCount)
-        Test.updateArticleCount(id, year, articleCount);
-      if (previousAvgScore != avgScore)
-        Test.updateAvgScore(id, year, avgScore);
-      println(s"Finished updating ${"\""}${game._2}${"\""}.");
-    }
   }
 
   "randomcommands2" should "only be used FOR TESTING" in {
@@ -458,14 +474,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "addGame(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]" should "insert a new game record into the games table if it does not already exist" in {
-    Test.addGame(1, "test", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String]("test01", "test02"), List[String]("test03", "test04"));
+    Test.addGame(1, "test", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0, 0, Map[Long, String](2L ->"test01", 3L -> "test02"), Map[Long, String](4L -> "test03", 5L -> "test04"));
     assert(Test.gameExists(1, LocalDateTime.now().getYear.toString));
   }
 
   "addGames(List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])])" should "insert new game records into the games table if they do not already exist" in {
-    Test.addGames(List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])](
-      (2, "test1", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String](), List[String]()),
-      (3, "test2", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0.0, 0, 0, List[String](), List[String]()),
+    Test.addGames(List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])](
+      (2, "test1", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0, 0, Map[Long, String](), Map[Long, String]()),
+      (3, "test2", LocalDateTime.now(), "test", "test", "http://www.nowhere.com", "http://www.nowhere.com", 0, 0, Map[Long, String](), Map[Long, String]()),
     ));
     assert(Test.gameExists(2, LocalDateTime.now().getYear.toString));
     assert(Test.gameExists(3, LocalDateTime.now().getYear.toString));
@@ -481,27 +497,27 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "getGame(Long, String)" should "return the game details for the specified game_id, assuming that it exists in our games datastore" in {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(1, LocalDateTime.now().getYear.toString);
+    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = Test.getGame(1, LocalDateTime.now().getYear.toString);
     assert(result != null);
   }
 
   it should "return null if the game_id does not exist in the games datastore" in {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame(-1, LocalDateTime.now().getYear.toString);
+    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = Test.getGame(-1, LocalDateTime.now().getYear.toString);
     assert(result == null);
   }
 
   "getGame(String)" should "return the game details for the specified game_name, assuming that it exists in our games datastore" in {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame("test");
+    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = Test.getGame("test");
     assert(result != null);
   }
 
   it should "return null if the game_id does not exist in the games datastore" in {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String]) = Test.getGame("nonexistentgame");
+    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = Test.getGame("nonexistentgame");
     assert(result == null);
   }
 
   "getGamesBetween(LocalDateTime, LocalDateTime)" should "return a list of games that exist between the start and end dates" in {
-    val result : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = Test.getGamesBetween(LocalDateTime.parse("2021-12-01T00:00:00"), LocalDateTime.parse("2021-12-31T23:59:59"));
+    val result : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = Test.getGamesBetween(LocalDateTime.parse("2021-12-01T00:00:00"), LocalDateTime.parse("2021-12-31T23:59:59"));
     if (result.isEmpty)
       assert(result.isEmpty);
     else
@@ -529,7 +545,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "getGames()" should "return a list containing all the games in our games datastore" in {
-    val games : List[(Long, String, LocalDateTime, String, String, String, String, Double, Long, Long, List[String], List[String])] = Test.getGames();
+    val games : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = Test.getGames();
     if (games.isEmpty)
       assert(games.isEmpty);
     else
@@ -546,28 +562,6 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
 
   it should "return negative infinity if the game_id does not exist" in {
     assert(Test.calculateAvgScore(-1L) == Double.NegativeInfinity);
-  }
-
-  "getAvgScore(Long, String)" should "return the last known average score for a game with the given game_id and year partition" in {
-    assert(Test.getAvgScore(1, LocalDateTime.now().getYear.toString) == 0.0);
-  }
-
-  it should "return negative infinity if the game does not exist" in {
-    assert(Test.getAvgScore(-1, LocalDateTime.now().getYear.toString) == Double.NegativeInfinity);
-  }
-
-  "updateAvgScore(Long, String, Double)" should "update the game with the provided game_id and year partition's average score with the provided average score and return its previous value" in {
-    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, 3.2) == 0.0);
-    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, 0.0) == 3.2);
-  }
-
-  it should "should return the previous value if the provided value is greater than 10.0 or less than 0.0" in {
-    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, -0.1) == 0.0);
-    assert(Test.updateAvgScore(1, LocalDateTime.now().getYear.toString, 10.01) == 0.0);
-  }
-
-  it should "return negative infinity for Double if the game id does not exist" in {
-    assert(Test.updateAvgScore(-1, LocalDateTime.now().getYear.toString, 2.0) == Double.NegativeInfinity);
   }
 
   "getPreviousGameArticleCount(Long, String)" should "return the previously-known article count for a given game" in {
@@ -755,5 +749,124 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   it should "return an empty list of articles if the game_id has no articles or the game_id does not exist in the articles datastore" in {
     assert(Test.deleteGameArticles(2).isEmpty);
     assert(Test.deleteGameArticles(-1).isEmpty);
+  }
+
+  "addAuthor(String)" should "add the author with the given name to the authors table" in {
+    Test.addAuthor("test");
+    assert(Test.authorExists("test"));
+  }
+
+  "authorExists(String)" should "return true or false if the given author exists in our authors table" in {
+    assert(Test.authorExists("test"));
+    assert(!Test.authorExists("nonexistentauthor"));
+  }
+
+  "getAuthorId(String)" should "return the author_id for the given author" in {
+    assert(Test.getAuthorId("test") == 1);
+  }
+
+  it should "return zero if the author does not exist" in {
+    assert(Test.getAuthorId("nonexistentauthor") == 0);
+  }
+
+  "getNextAuthorId()" should "return the next assignable author_id based in the maximum author_id value in the authors table" in {
+    assert(Test.getNextAuthorId() == 2);
+  }
+
+  it should "return 1 if no authors exist in the table" in {
+    Test.executeDML(Test.connect(), "truncate table p1.authors");
+    assert(Test.getNextAuthorId() == 1);
+  }
+
+  "addArticleAuthor(Long, Long)" should "add a record for the given article_id and author_id to the articleAuthors table" in {
+    Test.addArticleAuthor(1L, 1L);
+  }
+
+  "getArticleAuthors(Long)" should "return the concatenated String representation of the authors for the given article_id as 'Name1; Name2; ...'" in {
+    assert(Test.getArticleAuthors(1L).nonEmpty);
+  }
+
+  "deleteArticleAuthors(Long)" should "remove the article-author mappings from articleAuthors for the given article_id and return them in the concatenated String representation" in {
+    assert(Test.deleteArticleAuthors(1L).nonEmpty);
+    assert(Test.deleteArticleAuthors(1L).isEmpty);
+  }
+
+  "addReviewAuthor(Long, Long)" should "add a review-author mapping to the reviewAuthors table for the given review_id and author_id" in {
+    Test.addReviewAuthor(1L, 1L);
+  }
+
+  "getReviewAuthors(Long)" should "return the concatenated String representation of the authors for hte given review_id as 'Name1; Name2; ...'" in {
+    assert(Test.getReviewAuthors(1L).nonEmpty);
+  }
+
+  "deleteReviewAuthors(Long)" should "remove the review-author mappings from reviewAuthors for the given review_id and return them in teh concatenated String representation" in {
+    assert(Test.deleteReviewAuthors(1L).nonEmpty);
+    assert(Test.deleteReviewAuthors(1L).isEmpty);
+  }
+
+  "addCategory(Long, String)" should "add an entry for the given category_id and category into the categories table" in {
+    Test.addCategory(1L, "test");
+  }
+
+  "categoryExists(Long)" should "return whether the given category_id exists in the categories table" in {
+    assert(Test.categoryExists(1L));
+    Test.executeDML(Test.connect(), "truncate table p1.categories");
+  }
+
+  "addArticleCategory(Long, Long)" should "add an article-category association mapping to the articleCategories table" in {
+    Test.addArticleCategory(1L, 1L);
+  }
+
+  "getArticleCategories(Long)" should "return a Map[Long, String] containing the categories associated with the given article_id" in {
+    assert(Test.getArticleCategories(1L).nonEmpty);
+  }
+
+  "deleteArticleCategories(Long)" should "remove the article-category associations in articleCatgories and return the removed entries in a Map[Long, String] structure" in {
+    assert(Test.deleteArticleCategories(1L).nonEmpty);
+    assert(Test.deleteArticleCategories(1L).isEmpty);
+  }
+
+  "addGenre(Long, String)" should "add the given genre with the given genre_id to the genres table" in {
+    Test.addGenre(1L, "test");
+  }
+
+  "genreExists(Long)" should "return whether the given genre_id exists in the genres table" in {
+    assert(Test.genreExists(1L));
+    Test.executeDML(Test.connect(), "truncate table p1.genres");
+  }
+
+  "addGameGenre" should "add a game-genre association mapping to the gameGenres table" in {
+    Test.addGameGenre(1L, 1L);
+  }
+
+  "getGameGenres(Long)" should "return a Map[long, String] structure containing the genre details associated with the given game_id" in {
+    assert(Test.getGameGenres(1L).nonEmpty);
+  }
+
+  "deleteGameGenres(Long)" should "remove entries in gameGenres for the given game_id and return them in a Map[Long, String] structure" in {
+    assert(Test.deleteGameGenres(1L).nonEmpty);
+    assert(Test.deleteGameGenres(1L).isEmpty);
+  }
+
+  "addTheme(Long, String)" should "add an entry to the themes table for the given theme_id and theme" in {
+    Test.addTheme(1L, "test");
+  }
+
+  "themeExists(Long)" should "return whether the given theme_id exists in the themes table" in {
+    assert(Test.themeExists(1L));
+    Test.executeDML(Test.connect(), "truncate table p1.themes");
+  }
+
+  "addGameTheme(Long, Long)" should "add the game_id-theme_id association to the gameThemes table" in {
+    Test.addGameTheme(1L, 1L);
+  }
+
+  "getGameThemes(Long)" should "return a Map[Long, String] structure containing the theme details for the given game_id's game-theme mappings in gameThemes" in {
+    assert(Test.getGameThemes(1L).nonEmpty);
+  }
+
+  "deleteGameThemes(Long)" should "remove all entries associated with the given game_id from gameThemes and return their details in a Map[Long, String] structure" in {
+    assert(Test.deleteGameThemes(1L).nonEmpty);
+    assert(Test.deleteGameThemes(1L).isEmpty);
   }
 }
