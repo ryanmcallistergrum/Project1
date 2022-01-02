@@ -12,7 +12,9 @@ class TestAPIFetcher extends AnyFlatSpec with should.Matchers {
     override def getGamesBetween(startDate: LocalDateTime, endDate: LocalDateTime): Unit = super.getGamesBetween(startDate, endDate);
     override def getGameReviews(game_id: Long, year : String): Unit = super.getGameReviews(game_id, year);
     override def getGameArticles(game_id: Long, year : String): Unit = super.getGameArticles(game_id, year);
-    override def getAllReviews(): Unit = super.getAllReviews();
+    override def getAllReviews(): Unit = super.getAllReviews()
+    override def getAllGameThemes(): Unit = super.getAllGameThemes();
+    override def getAllGameGenres(): Unit = super.getAllGameGenres();
     override def outputFindings(): Unit = super.outputFindings();
     override def outputFinding(str: String): Unit = super.outputFinding(str);
     override def silence(): Unit = super.silence();
@@ -94,5 +96,15 @@ class TestAPIFetcher extends AnyFlatSpec with should.Matchers {
   "getAllReviews()" should "go out and fetch all missing reviews from Gamespot's API" in {
     Test.outputFindings();
     Test.getAllReviews();
+  }
+
+  "getAllGameThemes()" should "go out and fetch all missing game themes from Gamespot's API" in {
+    Test.outputFindings();
+    Test.getAllGameThemes();
+  }
+
+  "getAllGameGenres()" should "go out and fetch all missing game genres from Gamespot's API" in {
+    Test.outputFindings();
+    Test.getAllGameGenres();
   }
 }
