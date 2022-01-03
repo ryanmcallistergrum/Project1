@@ -1,4 +1,4 @@
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -93,13 +93,14 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     override def addArticleCategory(article_id: Long, category_id: Long): Unit = super.addArticleCategory(article_id, category_id);
     override def getArticleCategories(article_id: Long): Map[Long, String] = super.getArticleCategories(article_id);
     override def deleteArticleCategories(article_id: Long): Map[Long, String] = super.deleteArticleCategories(article_id);
-    override def addGenre(genre: String): Unit = super.addGenre(genre);
+    override def addGenre(genre: String): Long = super.addGenre(genre);
     override def genreExists(genre: String): Boolean = super.genreExists(genre);
     override def getGenreId(genre: String): Long = super.getGenreId(genre);
     override def getNextGenreId(): Long = super.getNextGenreId();
     override def addGameGenre(game_id: Long, genre_id: Long): Unit = super.addGameGenre(game_id, genre_id);
     override def getGameGenres(game_id: Long): List[String] = super.getGameGenres(game_id);
     override def deleteGameGenres(game_id: Long): List[String] = super.deleteGameGenres(game_id);
+    override def addTheme(theme: String): Long = super.addTheme(theme);
     override def themeExists(theme: String): Boolean = super.themeExists(theme);
     override def addGameTheme(game_id: Long, theme_id: Long): Unit = super.addGameTheme(game_id, theme_id);
     override def getGameThemes(game_id: Long): List[String] = super.getGameThemes(game_id);
@@ -107,7 +108,29 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
+    var df : DataFrame = Test.executeQuery(Test.connect(), "select game_id, genres from p1.games where size(genres) > 0 order by game_id");
+    Test.executeDML(Test.connect(), "truncate table p1.gameGenres");
+    Test.executeDML(Test.connect(), "truncate table p1.genres");
+    if (!df.isEmpty)
+      for (row : Row <- df.collect())
+        for (genre: String <- row.getAs[List[String]]("genres"))
+          if (genre.nonEmpty)
+            if (!Test.genreExists(genre))
+              Test.addGameGenre(row.getLong(0), Test.addGenre(genre));
+            else if (!Test.getGameGenres(row.getLong(0)).contains(genre))
+              Test.addGameGenre(row.getLong(0), Test.getGenreId(genre))
 
+    df = Test.executeQuery(Test.connect(), "select game_id, themes from p1.games where size(themes) > 0 order by game_id");
+    Test.executeDML(Test.connect(), "truncate table p1.gameThemes");
+    Test.executeDML(Test.connect(), "truncate table p1.themes");
+    if (!df.isEmpty)
+      for (row : Row <- df.collect())
+        for (theme: String <- row.getAs[List[String]]("themes"))
+          if (theme.nonEmpty)
+            if (!Test.themeExists(theme))
+              Test.addGameTheme(row.getLong(0), Test.addTheme(theme));
+            else if (!Test.getGameThemes(row.getLong(0)).contains(theme))
+              Test.addGameTheme(row.getLong(0), Test.getThemeId(theme))
   }
 
   "randomcommands2" should "only be used FOR TESTING" in {
