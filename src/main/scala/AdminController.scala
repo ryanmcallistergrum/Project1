@@ -340,6 +340,8 @@ object AdminController extends HiveDBManager {
           }
           try {
             userChoice = readInt();
+            if (!users.exists(u => u._1 == userChoice) && userChoice != 0)
+              println("Invalid user choice! Please try again.");
           } catch {
             case nfe: NumberFormatException => {
               println("That is not a valid number! Please try again.");
@@ -347,8 +349,8 @@ object AdminController extends HiveDBManager {
           }
         } while (!users.exists(u => u._1 == userChoice) && userChoice != 0);
 
-        if (userInput > 0)
-          userInput match {
+        if (userChoice > 0)
+          userChoice match {
             case 1 => {
               deleteBasicUser(userChoice)
               if (getUsers().forall(p => p._4)) {
