@@ -1,5 +1,6 @@
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import com.roundeights.hasher.Implicits._
+import org.apache.spark.sql.catalyst.analysis.NoSuchDatabaseException
 
 import java.io.{BufferedReader, File, FileReader, FileWriter}
 import java.sql.Timestamp
@@ -32,6 +33,11 @@ class HiveDBManager extends HiveConnection {
 
   def startupDB() : Unit = {
     val spark : SparkSession = connect();
+    try {
+      val df: DataFrame = executeQuery(spark, "use p1");
+    } catch {
+      case nsdbe : NoSuchDatabaseException => createDB();
+    }
   }
 
   protected def createUsersCopy(table_name : String) : Unit = {
@@ -75,7 +81,7 @@ class HiveDBManager extends HiveConnection {
           "review_count BigInt" +
         ") " +
         "partitioned by (year String) " +
-        "clustered by (year) " +
+        "clustered by (release_date) " +
         "sorted by (release_date) " +
         "into 50 buckets " +
         "stored as orc"
@@ -856,7 +862,7 @@ class HiveDBManager extends HiveConnection {
         s"'$lede', " +
         s"'$body', " +
         s"to_timestamp('$publishDate'), " +
-        s"to_timestamp('$updateDate'), "
+        s"to_timestamp('$updateDate') "
     );
     authors.split("; ").foreach(a => {
       if (!authorExists(a))
@@ -1059,7 +1065,7 @@ class HiveDBManager extends HiveConnection {
   }
 
   protected def addArticleCategory(article_id : Long, category_id : Long) : Unit = {
-    executeDML(connect(), s"insert into p1.articleCategory values ($article_id, $category_id)");
+    executeDML(connect(), s"insert into p1.articleCategories values ($article_id, $category_id)");
   }
 
   protected def getArticleCategories(article_id : Long) : Map[Long, String] = {
@@ -1212,6 +1218,11 @@ object HiveDBManager extends HiveConnection {
 
   def startupDB() : Unit = {
     val spark : SparkSession = connect();
+    try {
+      val df: DataFrame = executeQuery(spark, "use p1");
+    } catch {
+        case nsdbe : NoSuchDatabaseException => createDB();
+    }
   }
 
   protected def createUsersCopy(table_name : String) : Unit = {
@@ -1255,7 +1266,7 @@ object HiveDBManager extends HiveConnection {
         "review_count BigInt" +
         ") " +
         "partitioned by (year String) " +
-        "clustered by (year) " +
+        "clustered by (release_date) " +
         "sorted by (release_date) " +
         "into 50 buckets " +
         "stored as orc"
@@ -2036,7 +2047,7 @@ object HiveDBManager extends HiveConnection {
         s"'$lede', " +
         s"'$body', " +
         s"to_timestamp('$publishDate'), " +
-        s"to_timestamp('$updateDate'), "
+        s"to_timestamp('$updateDate') "
     );
     authors.split("; ").foreach(a => {
       if (!authorExists(a))
@@ -2239,7 +2250,7 @@ object HiveDBManager extends HiveConnection {
   }
 
   protected def addArticleCategory(article_id : Long, category_id : Long) : Unit = {
-    executeDML(connect(), s"insert into p1.articleCategory values ($article_id, $category_id)");
+    executeDML(connect(), s"insert into p1.articleCategories values ($article_id, $category_id)");
   }
 
   protected def getArticleCategories(article_id : Long) : Map[Long, String] = {
