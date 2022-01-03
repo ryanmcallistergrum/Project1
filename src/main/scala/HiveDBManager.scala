@@ -1084,8 +1084,10 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def addGenre(genre : String) : Unit = {
-    executeDML(connect(), s"insert into p1.genres values (${getNextGenreId()}, '$genre')");
+  def addGenre(genre : String) : Long = {
+    val result : Long = getNextGenreId();
+    executeDML(connect(), s"insert into p1.genres values ($result, '$genre')");
+    return result;
   }
 
   def genreExists(genre : String) : Boolean = {
@@ -2262,8 +2264,10 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def addGenre(genre : String) : Unit = {
-    executeDML(connect(), s"insert into p1.genres values (${getNextGenreId()}, '$genre')");
+  def addGenre(genre : String) : Long = {
+    val result : Long = getNextGenreId();
+    executeDML(connect(), s"insert into p1.genres values ($result, '$genre')");
+    return result;
   }
 
   def genreExists(genre : String) : Boolean = {
