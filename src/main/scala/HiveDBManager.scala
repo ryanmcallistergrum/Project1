@@ -428,7 +428,7 @@ class HiveDBManager extends HiveConnection {
     executeDML(spark, "alter table p1.queriesTemp rename to queries");
   }
 
-  def addGame(game_id : Long, name : String, release_date : LocalDateTime, deck : String, description : String, articles_api_url : String, reviews_api_url : String, article_count : Long, review_count : Long, genres : Map[Long, String], themes : Map[Long, String]) : Unit = {
+  def addGame(game_id : Long, name : String, release_date : LocalDateTime, deck : String, description : String, articles_api_url : String, reviews_api_url : String, article_count : Long, review_count : Long, genres : List[String], themes : List[String]) : Unit = {
     val dateTime : String = release_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     executeDML(connect(),
       s"insert into p1.games partition(year='${release_date.getYear}') select " +
@@ -442,20 +442,21 @@ class HiveDBManager extends HiveConnection {
         s"${article_count}L, " +
         s"${review_count}L "
     );
-    for (genre : Long <- genres.keys) {
+    for (genre : String <- genres) {
       if (!genreExists(genre))
-        addGenre(genre, genres(genre))
-      addGameGenre(game_id, genre);
+        addGenre(genre)
+      addGameGenre(game_id, getGenreId(genre));
     }
-    for (theme : Long <- themes.keys) {
+    for (theme : String <- themes) {
       if (!themeExists(theme))
-        addTheme(theme, themes(theme));
-      addGameTheme(game_id, theme);
+        addGameTheme(game_id, addTheme(theme));
+      else
+        addGameTheme(game_id, getThemeId(theme));
     }
   }
 
-  def addGames(games : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])]) : Unit = {
-    for (game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) <- games)
+  def addGames(games : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])]) : Unit = {
+    for (game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) <- games)
       addGame(
         game._1,
         game._2,
@@ -476,8 +477,8 @@ class HiveDBManager extends HiveConnection {
     return !df.isEmpty;
   }
 
-  def getGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = null;
+  def getGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games where game_id = ${game_id}L and year = '$year' limit 1");
     if (!df.isEmpty) {
       val row : Row = df.take(1)(0);
@@ -498,8 +499,8 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def getGame(game_name : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = null;
+  def getGame(game_name : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games where name = '$game_name' limit 1");
     if (!df.isEmpty) {
       val row : Row = df.take(1)(0);
@@ -520,13 +521,13 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def getGamesBetween(startDate : LocalDateTime, endDate : LocalDateTime) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = {
-    var result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = ArrayBuffer();
+  def getGamesBetween(startDate : LocalDateTime, endDate : LocalDateTime) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = {
+    var result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}' and year between '${startDate.getYear}' and '${endDate.getYear}' order by game_id")
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
         for(row : Row <- df.collect()) {
-          val tuple : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = (
+          val tuple : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = (
             row.getLong(0),
             row.getString(1),
             row.getTimestamp(2).toLocalDateTime,
@@ -545,8 +546,8 @@ class HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
-  def getMaxGameBetween(startDate : LocalDateTime, endDate : LocalDateTime) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = null;
+  def getMaxGameBetween(startDate : LocalDateTime, endDate : LocalDateTime) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select max(game_id), year from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}' and year between '${startDate.getYear}' and '${endDate.getYear}'");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
@@ -568,13 +569,13 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = {
-    var results : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = ArrayBuffer();
+  def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = {
+    var results : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games order by game_id");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
         for (row: Row <- df.collect()) {
-          val tuple: (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = (
+          val tuple: (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = (
             row.getLong(0),
             row.getString(1),
             row.getTimestamp(2).toLocalDateTime,
@@ -593,7 +594,7 @@ class HiveDBManager extends HiveConnection {
     return results.toList;
   }
 
-  def getMaxGame() : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
+  def getMaxGame() : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
     val df : DataFrame = executeQuery(connect(), s"select max(game_id), year from p1.games");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
@@ -625,7 +626,7 @@ class HiveDBManager extends HiveConnection {
 
   def getPreviousGameArticleCount(game_id : Long, year : String) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null)
       result = game._8;
     return result;
@@ -633,7 +634,7 @@ class HiveDBManager extends HiveConnection {
 
   def updateArticleCount(game_id : Long, year : String, newArticleCount : Long) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null) {
       result = game._9
       if (newArticleCount >= 0) {
@@ -662,7 +663,7 @@ class HiveDBManager extends HiveConnection {
 
   def getPreviousGameReviewCount(game_id : Long, year : String) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null)
       result = game._9
     return result;
@@ -670,7 +671,7 @@ class HiveDBManager extends HiveConnection {
 
   def updateReviewCount(game_id : Long, year : String, newReviewCount : Long) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null) {
       result = game._9
       if (newReviewCount >= 0) {
@@ -697,8 +698,8 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def deleteGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+  def deleteGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (result != null) {
       val spark: SparkSession = connect();
       createGamesCopy("p1.gamesTemp");
@@ -709,10 +710,10 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def deleteGames(games : Map[Long, String]) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = {
-    val result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = ArrayBuffer();
+  def deleteGames(games : Map[Long, String]) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = {
+    val result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = ArrayBuffer();
     for (game_id : Long <- games.keys) {
-      val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = deleteGame(game_id, games(game_id));
+      val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = deleteGame(game_id, games(game_id));
       if (game != null)
         result += game;
     }
@@ -1083,30 +1084,46 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def addGenre(genre_id : Long, genre : String) : Unit = {
-    executeDML(connect(), s"insert into p1.genres values ($genre_id, '$genre')");
+  def addGenre(genre : String) : Unit = {
+    executeDML(connect(), s"insert into p1.genres values (${getNextGenreId()}, '$genre')");
   }
 
-  def genreExists(genre_id : Long) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.genres where genre_id = $genre_id limit 1");
+  def genreExists(genre : String) : Boolean = {
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.genres where genre = '$genre' limit 1");
     return !df.isEmpty;
+  }
+
+  def getGenreId(genre : String) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select genre_id from p1.genres where genre = '$genre' limit 1");
+    if (!df.isEmpty)
+      return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
+  protected def getNextGenreId() : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select max(genre_id) from p1.genres");
+    if (!df.isEmpty) {
+      if (!df.take(1)(0).isNullAt(0))
+      return df.take(1)(0).getLong(0) + 1;
+    };
+    return 1L;
   }
 
   protected def addGameGenre(game_id : Long, genre_id : Long) : Unit = {
     executeDML(connect(), s"insert into p1.gameGenres values ($game_id, $genre_id)");
   }
 
-  protected def getGameGenres(game_id : Long) : Map[Long, String] = {
-    var result : Map[Long, String] = Map();
-    val df : DataFrame = executeQuery(connect(), "select ge.genre_id, ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
+  protected def getGameGenres(game_id : Long) : List[String] = {
+    var result : ArrayBuffer[String] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), "select ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
     if (!df.isEmpty)
       for(row : Row <- df.collect())
-        result += (row.getLong(0) -> row.getString(1));
-    return result;
+        result += row.getString(0);
+    return result.toList;;
   }
 
-  protected def deleteGameGenres(game_id : Long) : Map[Long, String] = {
-    val result : Map[Long, String] = getGameGenres(game_id);
+  protected def deleteGameGenres(game_id : Long) : List[String] = {
+    val result : List[String] = getGameGenres(game_id);
     if (result.nonEmpty) {
       val spark : SparkSession = connect();
       createGameGenresCopy("p1.gameGenresTemp");
@@ -1117,30 +1134,47 @@ class HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def addTheme(theme_id : Long, theme : String) : Unit = {
-    executeDML(connect(), s"insert into p1.themes values ($theme_id, '$theme')");
+  def addTheme(theme : String) : Long = {
+    val result : Long = getNextThemeId();
+    executeDML(connect(), s"insert into p1.themes values ($result, '$theme')");
+    return result;
   }
 
-  def themeExists(theme_id : Long) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.themes where theme_id = $theme_id limit 1");
+  def themeExists(theme : String) : Boolean = {
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.themes where theme = '$theme' limit 1");
     return !df.isEmpty;
+  }
+
+  def getThemeId(theme : String) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select theme_id from p1.themes where theme = '$theme' limit 1");
+    if (!df.isEmpty)
+      return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
+  protected def getNextThemeId() : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select max(theme_id) from p1.themes");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0) + 1;
+    return 1L;
   }
 
   protected def addGameTheme(game_id : Long, theme_id : Long) : Unit = {
     executeDML(connect(), s"insert into p1.gameThemes values ($game_id, $theme_id)");
   }
 
-  protected def getGameThemes(game_id : Long) : Map[Long, String] = {
-    var result : Map[Long, String] = Map();
-    val df : DataFrame = executeQuery(connect(), s"select t.theme_id, t.theme from p1.themes t, p1.gameThemes gt, p1.games g where g.game_id = $game_id and g.game_id = gt.game_id and gt.theme_id = t.theme_id order by t.theme_id");
+  protected def getGameThemes(game_id : Long) : List[String] = {
+    var result : ArrayBuffer[String] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), s"select t.theme from p1.themes t, p1.gameThemes gt, p1.games g where g.game_id = $game_id and g.game_id = gt.game_id and gt.theme_id = t.theme_id order by t.theme_id");
     if (!df.isEmpty)
       for (row : Row <- df.collect())
-        result += (row.getLong(0) -> row.getString(1));
-    return result;
+        result += row.getString(0);
+    return result.toList;
   }
 
-  protected def deleteGameThemes(game_id : Long) : Map[Long, String] = {
-    val result : Map[Long, String] = getGameThemes(game_id);
+  protected def deleteGameThemes(game_id : Long) : List[String] = {
+    val result : List[String] = getGameThemes(game_id);
     if (result.nonEmpty) {
       val spark : SparkSession = connect();
       createGameThemesCopy("p1.gameThemesTemp");
@@ -1572,7 +1606,7 @@ object HiveDBManager extends HiveConnection {
     executeDML(spark, "alter table p1.queriesTemp rename to queries");
   }
 
-  def addGame(game_id : Long, name : String, release_date : LocalDateTime, deck : String, description : String, articles_api_url : String, reviews_api_url : String, article_count : Long, review_count : Long, genres : Map[Long, String], themes : Map[Long, String]) : Unit = {
+  def addGame(game_id : Long, name : String, release_date : LocalDateTime, deck : String, description : String, articles_api_url : String, reviews_api_url : String, article_count : Long, review_count : Long, genres : List[String], themes : List[String]) : Unit = {
     val dateTime : String = release_date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     executeDML(connect(),
       s"insert into p1.games partition(year='${release_date.getYear}') select " +
@@ -1586,20 +1620,21 @@ object HiveDBManager extends HiveConnection {
         s"${article_count}L, " +
         s"${review_count}L "
     );
-    for (genre : Long <- genres.keys) {
+    for (genre : String <- genres) {
       if (!genreExists(genre))
-        addGenre(genre, genres(genre))
-      addGameGenre(game_id, genre);
+        addGenre(genre)
+      addGameGenre(game_id, getGenreId(genre));
     }
-    for (theme : Long <- themes.keys) {
+    for (theme : String <- themes) {
       if (!themeExists(theme))
-        addTheme(theme, themes(theme));
-      addGameTheme(game_id, theme);
+        addGameTheme(game_id, addTheme(theme));
+      else
+        addGameTheme(game_id, getThemeId(theme));
     }
   }
 
-  def addGames(games : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])]) : Unit = {
-    for (game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) <- games)
+  def addGames(games : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])]) : Unit = {
+    for (game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) <- games)
       addGame(
         game._1,
         game._2,
@@ -1620,8 +1655,8 @@ object HiveDBManager extends HiveConnection {
     return !df.isEmpty;
   }
 
-  def getGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = null;
+  def getGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games where game_id = ${game_id}L and year = '$year' limit 1");
     if (!df.isEmpty) {
       val row : Row = df.take(1)(0);
@@ -1642,8 +1677,8 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def getGame(game_name : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = null;
+  def getGame(game_name : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games where name = '$game_name' limit 1");
     if (!df.isEmpty) {
       val row : Row = df.take(1)(0);
@@ -1664,13 +1699,13 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def getGamesBetween(startDate : LocalDateTime, endDate : LocalDateTime) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = {
-    var result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = ArrayBuffer();
+  def getGamesBetween(startDate : LocalDateTime, endDate : LocalDateTime) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = {
+    var result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}' and year between '${startDate.getYear}' and '${endDate.getYear}' order by game_id")
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
         for(row : Row <- df.collect()) {
-          val tuple : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = (
+          val tuple : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = (
             row.getLong(0),
             row.getString(1),
             row.getTimestamp(2).toLocalDateTime,
@@ -1689,8 +1724,8 @@ object HiveDBManager extends HiveConnection {
     return result.toList;
   }
 
-  def getMaxGameBetween(startDate : LocalDateTime, endDate : LocalDateTime) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = null;
+  def getMaxGameBetween(startDate : LocalDateTime, endDate : LocalDateTime) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    var result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = null;
     val df : DataFrame = executeQuery(connect(), s"select max(game_id), year from p1.games where release_date between '${Timestamp.valueOf(startDate)}' and '${Timestamp.valueOf(endDate)}' and year between '${startDate.getYear}' and '${endDate.getYear}'");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
@@ -1712,13 +1747,13 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = {
-    var results : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = ArrayBuffer();
+  def getGames() : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = {
+    var results : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = ArrayBuffer();
     val df : DataFrame = executeQuery(connect(), s"select game_id, name, release_date, deck, description, articles_api_url, reviews_api_url, article_count, review_count from p1.games order by game_id");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
         for (row: Row <- df.collect()) {
-          val tuple: (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = (
+          val tuple: (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = (
             row.getLong(0),
             row.getString(1),
             row.getTimestamp(2).toLocalDateTime,
@@ -1737,7 +1772,7 @@ object HiveDBManager extends HiveConnection {
     return results.toList;
   }
 
-  def getMaxGame() : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
+  def getMaxGame() : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
     val df : DataFrame = executeQuery(connect(), s"select max(game_id), year from p1.games");
     if (!df.isEmpty)
       if (!df.take(1)(0).isNullAt(0))
@@ -1769,7 +1804,7 @@ object HiveDBManager extends HiveConnection {
 
   def getPreviousGameArticleCount(game_id : Long, year : String) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null)
       result = game._8;
     return result;
@@ -1777,7 +1812,7 @@ object HiveDBManager extends HiveConnection {
 
   def updateArticleCount(game_id : Long, year : String, newArticleCount : Long) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null) {
       result = game._9
       if (newArticleCount >= 0) {
@@ -1806,7 +1841,7 @@ object HiveDBManager extends HiveConnection {
 
   def getPreviousGameReviewCount(game_id : Long, year : String) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null)
       result = game._9
     return result;
@@ -1814,7 +1849,7 @@ object HiveDBManager extends HiveConnection {
 
   def updateReviewCount(game_id : Long, year : String, newReviewCount : Long) : Long = {
     var result : Long = Long.MinValue;
-    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+    val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (game != null) {
       result = game._9
       if (newReviewCount >= 0) {
@@ -1841,8 +1876,8 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def deleteGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = {
-    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = getGame(game_id, year);
+  def deleteGame(game_id : Long, year : String) : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = {
+    val result : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = getGame(game_id, year);
     if (result != null) {
       val spark: SparkSession = connect();
       createGamesCopy("p1.gamesTemp");
@@ -1853,10 +1888,10 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def deleteGames(games : Map[Long, String]) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = {
-    val result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String])] = ArrayBuffer();
+  def deleteGames(games : Map[Long, String]) : List[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = {
+    val result : ArrayBuffer[(Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String])] = ArrayBuffer();
     for (game_id : Long <- games.keys) {
-      val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = deleteGame(game_id, games(game_id));
+      val game : (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = deleteGame(game_id, games(game_id));
       if (game != null)
         result += game;
     }
@@ -2227,30 +2262,46 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def addGenre(genre_id : Long, genre : String) : Unit = {
-    executeDML(connect(), s"insert into p1.genres values ($genre_id, '$genre')");
+  def addGenre(genre : String) : Unit = {
+    executeDML(connect(), s"insert into p1.genres values (${getNextGenreId()}, '$genre')");
   }
 
-  def genreExists(genre_id : Long) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.genres where genre_id = $genre_id limit 1");
+  def genreExists(genre : String) : Boolean = {
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.genres where genre = '$genre' limit 1");
     return !df.isEmpty;
+  }
+
+  def getGenreId(genre : String) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select genre_id from p1.genres where genre = '$genre' limit 1");
+    if (!df.isEmpty)
+      return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
+  protected def getNextGenreId() : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select max(genre_id) from p1.genres");
+    if (!df.isEmpty) {
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0) + 1;
+    };
+    return 1L;
   }
 
   protected def addGameGenre(game_id : Long, genre_id : Long) : Unit = {
     executeDML(connect(), s"insert into p1.gameGenres values ($game_id, $genre_id)");
   }
 
-  protected def getGameGenres(game_id : Long) : Map[Long, String] = {
-    var result : Map[Long, String] = Map();
-    val df : DataFrame = executeQuery(connect(), "select ge.genre_id, ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
+  protected def getGameGenres(game_id : Long) : List[String] = {
+    var result : ArrayBuffer[String] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), "select ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
     if (!df.isEmpty)
       for(row : Row <- df.collect())
-        result += (row.getLong(0) -> row.getString(1));
-    return result;
+        result += row.getString(0);
+    return result.toList;;
   }
 
-  protected def deleteGameGenres(game_id : Long) : Map[Long, String] = {
-    val result : Map[Long, String] = getGameGenres(game_id);
+  protected def deleteGameGenres(game_id : Long) : List[String] = {
+    val result : List[String] = getGameGenres(game_id);
     if (result.nonEmpty) {
       val spark : SparkSession = connect();
       createGameGenresCopy("p1.gameGenresTemp");
@@ -2261,30 +2312,47 @@ object HiveDBManager extends HiveConnection {
     return result;
   }
 
-  def addTheme(theme_id : Long, theme : String) : Unit = {
-    executeDML(connect(), s"insert into p1.themes values ($theme_id, '$theme')");
+  def addTheme(theme : String) : Long = {
+    val result : Long = getNextThemeId();
+    executeDML(connect(), s"insert into p1.themes values ($result, '$theme')");
+    return result;
   }
 
-  def themeExists(theme_id : Long) : Boolean = {
-    val df : DataFrame = executeQuery(connect(), s"select * from p1.themes where theme_id = $theme_id limit 1");
+  def themeExists(theme : String) : Boolean = {
+    val df : DataFrame = executeQuery(connect(), s"select * from p1.themes where theme = '$theme' limit 1");
     return !df.isEmpty;
+  }
+
+  def getThemeId(theme : String) : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select theme_id from p1.themes where theme = '$theme' limit 1");
+    if (!df.isEmpty)
+      return df.take(1)(0).getLong(0);
+    return 0L;
+  }
+
+  protected def getNextThemeId() : Long = {
+    val df : DataFrame = executeQuery(connect(), s"select max(theme_id) from p1.themes");
+    if (!df.isEmpty)
+      if (!df.take(1)(0).isNullAt(0))
+        return df.take(1)(0).getLong(0) + 1;
+    return 1L;
   }
 
   protected def addGameTheme(game_id : Long, theme_id : Long) : Unit = {
     executeDML(connect(), s"insert into p1.gameThemes values ($game_id, $theme_id)");
   }
 
-  protected def getGameThemes(game_id : Long) : Map[Long, String] = {
-    var result : Map[Long, String] = Map();
-    val df : DataFrame = executeQuery(connect(), s"select t.theme_id, t.theme from p1.themes t, p1.gameThemes gt, p1.games g where g.game_id = $game_id and g.game_id = gt.game_id and gt.theme_id = t.theme_id order by t.theme_id");
+  protected def getGameThemes(game_id : Long) : List[String] = {
+    var result : ArrayBuffer[String] = ArrayBuffer();
+    val df : DataFrame = executeQuery(connect(), s"select t.theme from p1.themes t, p1.gameThemes gt, p1.games g where g.game_id = $game_id and g.game_id = gt.game_id and gt.theme_id = t.theme_id order by t.theme_id");
     if (!df.isEmpty)
       for (row : Row <- df.collect())
-        result += (row.getLong(0) -> row.getString(1));
-    return result;
+        result += row.getString(0);
+    return result.toList;
   }
 
-  protected def deleteGameThemes(game_id : Long) : Map[Long, String] = {
-    val result : Map[Long, String] = getGameThemes(game_id);
+  protected def deleteGameThemes(game_id : Long) : List[String] = {
+    val result : List[String] = getGameThemes(game_id);
     if (result.nonEmpty) {
       val spark : SparkSession = connect();
       createGameThemesCopy("p1.gameThemesTemp");

@@ -105,19 +105,13 @@ class APIFetcher extends GamespotAPI {
       if(gameJson("number_of_total_results").num.toLong == 1 && running) {
         if (!HiveDBManager.gameExists(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString)) {
           try {
-            var genres: Map[Long, String] = Map();
+            var genres: ArrayBuffer[String] = ArrayBuffer();
             for (j: Int <- gameJson("results")(0)("genres").arr.indices)
-              genres += (
-                gameJson("results")(0)("genres").arr(j)("id").num.toLong ->
-                gameJson("results")(0)("genres").arr(j)("name").str.replace("'", "''")
-              );
+              genres += gameJson("results")(0)("genres").arr(j)("name").str.replace("'", "''");
 
-            var themes: Map[Long, String] = Map();
+            var themes: ArrayBuffer[String] = ArrayBuffer();
             for (j: Int <- gameJson("results")(0)("themes").arr.indices)
-              themes += (
-                gameJson("results")(0)("themes").arr(j)("id").num.toLong ->
-                gameJson("results")(0)("themes").arr(j)("name").str.replace("'", "''")
-              );
+              themes += gameJson("results")(0)("themes").arr(j)("name").str.replace("'", "''");
 
             HiveDBManager.addGame(
               gameJson("results")(0)("id").num.toLong,
@@ -129,12 +123,12 @@ class APIFetcher extends GamespotAPI {
               gameJson("results")(0)("reviews_api_url").str,
               0L,
               0L,
-              genres,
-              themes
+              genres.toList,
+              themes.toList
             );
 
 
-            val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString);
+            val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString);
             if (running && output) {
               if (running && !summarize)
                 outputFinding(s"Added new game: $game");
@@ -148,7 +142,7 @@ class APIFetcher extends GamespotAPI {
           }
         }
 
-        val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString);
+        val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = HiveDBManager.getGame(gameJson("results")(0)("id").num.toLong, LocalDateTime.parse(gameJson("results")(0)("release_date").str.replace(" ", "T")).getYear.toString);
 
 
         // Now get its reviews.
@@ -358,7 +352,7 @@ class APIFetcher extends GamespotAPI {
       }
 
     if (running) {
-      val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = HiveDBManager.getGame(game_id, year);
+      val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = HiveDBManager.getGame(game_id, year);
 
       if (running && game != null) {
         Thread.sleep(1000)
@@ -450,7 +444,7 @@ class APIFetcher extends GamespotAPI {
       }
 
     if (running) {
-      val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, Map[Long, String], Map[Long, String]) = HiveDBManager.getGame(game_id, year);
+      val game: (Long, String, LocalDateTime, String, String, String, String, Long, Long, List[String], List[String]) = HiveDBManager.getGame(game_id, year);
 
       if (running && game != null) {
         Thread.sleep(1000);
@@ -651,9 +645,8 @@ class APIFetcher extends GamespotAPI {
           var i : Int = 0;
           while(i < gameJson("number_of_page_results").num.toInt && running) {
             for (j: Int <- gameJson("results")(i)("genres").arr.indices)
-              if (!HiveDBManager.genreExists(gameJson("results")(i)("genres").arr(j)("id").num.toLong)) {
+              if (!HiveDBManager.genreExists(gameJson("results")(i)("genres").arr(j)("name").str.replace("'", "''"))) {
                 HiveDBManager.addGenre(
-                  gameJson("results")(i)("genres").arr(j)("id").num.toLong,
                   gameJson("results")(i)("genres").arr(j)("name").str.replace("'", "''")
                 );
                 if (output && running)
@@ -710,9 +703,8 @@ class APIFetcher extends GamespotAPI {
           var i : Int = 0;
           while(i < gameJson("number_of_page_results").num.toInt && running) {
             for (j: Int <- gameJson("results")(i)("themes").arr.indices)
-              if (!HiveDBManager.themeExists(gameJson("results")(i)("themes").arr(j)("id").num.toLong)) {
+              if (!HiveDBManager.themeExists(gameJson("results")(i)("themes").arr(j)("name").str.replace("'", "''"))) {
                 HiveDBManager.addTheme(
-                  gameJson("results")(i)("themes").arr(j)("id").num.toLong,
                   gameJson("results")(i)("themes").arr(j)("name").str.replace("'", "''")
                 );
                 if (output && running)
