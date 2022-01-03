@@ -1117,7 +1117,7 @@ class HiveDBManager extends HiveConnection {
 
   protected def getGameGenres(game_id : Long) : List[String] = {
     var result : ArrayBuffer[String] = ArrayBuffer();
-    val df : DataFrame = executeQuery(connect(), "select ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
+    val df : DataFrame = executeQuery(connect(), s"select ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
     if (!df.isEmpty)
       for(row : Row <- df.collect())
         result += row.getString(0);
@@ -2297,7 +2297,7 @@ object HiveDBManager extends HiveConnection {
 
   protected def getGameGenres(game_id : Long) : List[String] = {
     var result : ArrayBuffer[String] = ArrayBuffer();
-    val df : DataFrame = executeQuery(connect(), "select ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
+    val df : DataFrame = executeQuery(connect(), s"select ge.genre from p1.genres ge, p1.gameGenres gg, p1.games g where g.game_id = $game_id and g.game_id = gg.game_id and gg.genre_id = ge.genre_id order by ge.genre_id");
     if (!df.isEmpty)
       for(row : Row <- df.collect())
         result += row.getString(0);
