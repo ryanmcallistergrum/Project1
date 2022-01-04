@@ -108,7 +108,16 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
-    var df : DataFrame = Test.executeQuery(Test.connect(), "select game_id, genres from p1.games where size(genres) > 0 order by game_id");
+    Test.createGameThemesCopy("p1.gameThemes");
+    Test.createGameGenresCopy("p1.gameGenres");
+    Test.createGenresCopy("p1.genres");
+    Test.createThemesCopy("p1.themes");
+    Test.createReviewAuthorsCopy("p1.reviewAuthors");
+    Test.createAuthorsCopy("p1.authors");
+    Test.createArticleAuthorsCopy("p1.articleAuthors");
+    Test.createArticleCategoriesCopy("p1.articleCategories");
+    Test.createCategoriesCopy("p1.categories");
+    /*var df : DataFrame = Test.executeQuery(Test.connect(), "select game_id, genres from p1.games where size(genres) > 0 order by game_id");
     Test.executeDML(Test.connect(), "truncate table p1.gameGenres");
     Test.executeDML(Test.connect(), "truncate table p1.genres");
     if (!df.isEmpty)
@@ -130,7 +139,7 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
             if (!Test.themeExists(theme))
               Test.addGameTheme(row.getLong(0), Test.addTheme(theme));
             else if (!Test.getGameThemes(row.getLong(0)).contains(theme))
-              Test.addGameTheme(row.getLong(0), Test.getThemeId(theme))
+              Test.addGameTheme(row.getLong(0), Test.getThemeId(theme))*/
   }
 
   "randomcommands2" should "only be used FOR TESTING" in {
