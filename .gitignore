@@ -5,9 +5,7 @@ Project 1.md
 derby.log
 *$*
 
-metastore_db
 project
-spark-warehouse
 target
 .bsp
 .idea
