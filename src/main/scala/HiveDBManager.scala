@@ -741,7 +741,7 @@ class HiveDBManager extends HiveConnection {
         s"$score, " +
         s"'$review_type'"
     );
-    for (author : String <- authors.split("; "))
+    for (author : String <- authors.split(","))
       if (!authorExists(author))
         addReviewAuthor(review_id, addAuthor(author));
       else
@@ -864,7 +864,7 @@ class HiveDBManager extends HiveConnection {
         s"to_timestamp('$publishDate'), " +
         s"to_timestamp('$updateDate') "
     );
-    authors.split("; ").foreach(a => {
+    authors.split(",").foreach(a => {
       if (!authorExists(a))
         addArticleAuthor(article_id, addAuthor(a));
       else
@@ -1926,7 +1926,7 @@ object HiveDBManager extends HiveConnection {
         s"$score, " +
         s"'$review_type'"
     );
-    for (author : String <- authors.split("; "))
+    for (author : String <- authors.split(","))
       if (!authorExists(author))
         addReviewAuthor(review_id, addAuthor(author));
       else
@@ -2049,7 +2049,7 @@ object HiveDBManager extends HiveConnection {
         s"to_timestamp('$publishDate'), " +
         s"to_timestamp('$updateDate') "
     );
-    authors.split("; ").foreach(a => {
+    authors.split(",").foreach(a => {
       if (!authorExists(a))
         addArticleAuthor(article_id, addAuthor(a));
       else
