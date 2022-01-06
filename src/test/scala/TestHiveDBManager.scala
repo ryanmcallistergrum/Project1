@@ -108,42 +108,29 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
   }
 
   "randomcommands" should "only be used FOR TESTING ONLY" in {
-    Test.createGameThemesCopy("p1.gameThemes");
-    Test.createGameGenresCopy("p1.gameGenres");
-    Test.createGenresCopy("p1.genres");
-    Test.createThemesCopy("p1.themes");
-    Test.createReviewAuthorsCopy("p1.reviewAuthors");
-    Test.createAuthorsCopy("p1.authors");
-    Test.createArticleAuthorsCopy("p1.articleAuthors");
-    Test.createArticleCategoriesCopy("p1.articleCategories");
-    Test.createCategoriesCopy("p1.categories");
-    /*var df : DataFrame = Test.executeQuery(Test.connect(), "select game_id, genres from p1.games where size(genres) > 0 order by game_id");
-    Test.executeDML(Test.connect(), "truncate table p1.gameGenres");
-    Test.executeDML(Test.connect(), "truncate table p1.genres");
+    val df : DataFrame = Test.executeQuery(Test.connect(), "select article_id, authors, categories from p1.articles where authors not in ('', ' ') order by article_id");
     if (!df.isEmpty)
-      for (row : Row <- df.collect())
-        for (genre: String <- row.getAs[List[String]]("genres"))
-          if (genre.nonEmpty)
-            if (!Test.genreExists(genre))
-              Test.addGameGenre(row.getLong(0), Test.addGenre(genre));
-            else if (!Test.getGameGenres(row.getLong(0)).contains(genre))
-              Test.addGameGenre(row.getLong(0), Test.getGenreId(genre))
-
-    df = Test.executeQuery(Test.connect(), "select game_id, themes from p1.games where size(themes) > 0 order by game_id");
-    Test.executeDML(Test.connect(), "truncate table p1.gameThemes");
-    Test.executeDML(Test.connect(), "truncate table p1.themes");
-    if (!df.isEmpty)
-      for (row : Row <- df.collect())
-        for (theme: String <- row.getAs[List[String]]("themes"))
-          if (theme.nonEmpty)
-            if (!Test.themeExists(theme))
-              Test.addGameTheme(row.getLong(0), Test.addTheme(theme));
-            else if (!Test.getGameThemes(row.getLong(0)).contains(theme))
-              Test.addGameTheme(row.getLong(0), Test.getThemeId(theme))*/
+      for (row : Row <- df.collect()) {
+        for (author : String <- row.getString(1).split(","))
+          if (!Test.authorExists(author))
+            Test.addArticleAuthor(row.getLong(0), Test.addAuthor(author));
+          else
+            Test.addArticleAuthor(row.getLong(0), Test.getAuthorId(author));
+        val categories : Map[Long, String] = row.getAs[Map[Long, String]](2);
+        for (category : Long <- categories.keys) {
+          if (!Test.categoryExists(category))
+            Test.addCategory(category, categories(category));
+          Test.addArticleCategory(row.getLong(0), category);
+        }
+      }
+    Test.createArticlesCopy("p1.articlesTemp");
+    Test.executeDML(Test.connect(), "insert into table p1.articlesTemp select article_id, title, deck, lede, body, publish_date, update_date, game_id, year from p1.articles");
+    Test.executeDML(Test.connect(), "drop table p1.articles");
+    Test.executeDML(Test.connect(), "alter table p1.articlesTemp rename to articles");
   }
 
   "randomcommands2" should "only be used FOR TESTING" in {
-    /*val spark : SparkSession = Test.connect();
+    val spark : SparkSession = Test.connect();
     Test.createReviewsCopy("p1.reviewsTemp");
     Test.executeDML(spark, s"insert into p1.reviewsTemp select * from p1.reviewsByYear");
     Test.executeDML(spark, "drop table p1.reviews");
@@ -154,8 +141,8 @@ class TestHiveDBManager extends AnyFlatSpec with should.Matchers {
     Test.executeDML(spark, s"insert into p1.articlesTemp select * from p1.articlesByYear");
     Test.executeDML(spark, "drop table p1.articles");
     Test.executeDML(spark, "drop table p1.articlesByYear");
-    Test.executeDML(spark, "alter table p1.articlesTemp rename to articles");*/
-    Test.executeDML(Test.connect(), "truncate table p1.queries");
+    Test.executeDML(spark, "alter table p1.articlesTemp rename to articles");
+    Test.executeDML(spark, "truncate table p1.queries");
   }
 
   "Most Mentioned" should "show the most-mentioned game each year and month" in {
