@@ -17,6 +17,8 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
     def getGameSortFields() : List[String] = gameSortFields;
     override def setAPIKey(key : String) : Unit = super.setAPIKey(key);
     override def getAPIKey() : String = super.getAPIKey();
+    override def setUserAgent(newUserAgent: String): Unit = super.setUserAgent(newUserAgent);
+    override def getUserAgent(): String = super.getUserAgent();
     override def getRequest() : HttpRequest = super.getRequest();
     override def getURL() : String = super.getURL();
     override def setURL(newURL : String, games : Boolean, articles : Boolean, reviews : Boolean) : Unit = super.setURL(newURL, games, articles, reviews);
@@ -43,6 +45,17 @@ class TestGamespotAPI extends AnyFlatSpec with should.Matchers {
   "getAPIKey()" should "return the String stored in the apiKey attribute" in {
     Test.setAPIKey("test");
     assert(Test.getAPIKey().equals("test"));
+  }
+
+  "setUserAgent(String)" should "modify the userAgent stored in the userAgent attribute" in {
+    assert(Test.getUserAgent().isEmpty);
+    Test.setUserAgent("test");
+    assert(Test.getUserAgent().equals("test"));
+  }
+
+  "getUserAgent()" should "return the String stored in the userAgent attribute" in {
+    Test.setUserAgent("test");
+    assert(Test.getUserAgent().equals("test"));
   }
 
   "getRequest()" should "initially be null" in {

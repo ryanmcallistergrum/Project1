@@ -21,6 +21,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -85,6 +86,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -166,6 +168,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -210,6 +213,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -274,6 +278,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -340,6 +345,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -432,6 +438,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -529,6 +536,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -621,6 +629,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();
@@ -679,6 +688,7 @@ class APIFetcher extends GamespotAPI {
       try {
         val map : Map[String, String] = getAPIConfig(API_CONFIG_FILENAME);
         setAPIKey(map("apiKey"));
+        setUserAgent(map("userAgent"));
       } catch {
         case n : NullPointerException => {
           n.printStackTrace();

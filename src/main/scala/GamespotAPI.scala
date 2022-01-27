@@ -6,6 +6,7 @@ import scala.io.BufferedSource
 class GamespotAPI {
   private final val URL : String = "https://www.gamespot.com/api/";
   private var apiKey : String = "";
+  private var userAgent : String = "";
   private var request : HttpRequest = null;
   private var games : Boolean = false;
   private var articles : Boolean = false;
@@ -41,6 +42,14 @@ class GamespotAPI {
     return apiKey;
   }
 
+  protected def setUserAgent(newUserAgent : String) : Unit = {
+    userAgent = newUserAgent;
+  }
+
+  protected def getUserAgent() : String = {
+    return userAgent;
+  }
+
   protected def getRequest() : HttpRequest = {
     return request;
   }
@@ -50,7 +59,7 @@ class GamespotAPI {
   }
 
   protected def setURL(newURL : String, games : Boolean, articles : Boolean, reviews : Boolean) : Unit = {
-    request = Http(newURL).copy(headers = Seq(("User-Agent", "ryanmgrum")));
+    request = Http(newURL).copy(headers = Seq(("User-Agent", getUserAgent())));
     this.games = games;
     this.articles = articles;
     this.reviews = reviews;
@@ -65,7 +74,7 @@ class GamespotAPI {
   }
 
   protected def init() : Unit = {
-    request = Http(URL).copy(headers = Seq(("User-Agent", "ryanmgrum")));
+    request = Http(URL).copy(headers = Seq(("User-Agent", getUserAgent())));
     games = false;
     articles = false;
     reviews = false;
@@ -76,17 +85,17 @@ class GamespotAPI {
       this.games = true;
       this.articles = false;
       this.reviews = false;
-      request = Http(URL + "games/").copy(headers = Seq(("User-Agent", "ryanmgrum")));
+      request = Http(URL + "games/").copy(headers = Seq(("User-Agent", getUserAgent())));
     } else if (articles) {
       this.games = false;
       this.articles = true;
       this.reviews = false;
-      request = Http(URL + "articles/").copy(headers = Seq(("User-Agent", "ryanmgrum")));
+      request = Http(URL + "articles/").copy(headers = Seq(("User-Agent", getUserAgent())));
     } else if (reviews) {
       this.games = false;
       this.articles = false;
       this.reviews = true;
-      request = Http(URL + "reviews/").copy(headers = Seq(("User-Agent", "ryanmgrum")));
+      request = Http(URL + "reviews/").copy(headers = Seq(("User-Agent", getUserAgent())));
     }
   }
 
