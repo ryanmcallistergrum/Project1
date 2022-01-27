@@ -135,7 +135,7 @@ object BasicController {
         print("Please enter your new username, or enter nothing to return to the User Menu: ");
         userInput = readLine();
         if (HiveDBManager.usernameExists(userInput))
-          println("Username $userInput already exists please choose another username.");
+          println(s"Username $userInput already exists please choose another username.");
       } while (HiveDBManager.usernameExists(userInput));
 
       if (userInput.nonEmpty)
