@@ -48,4 +48,17 @@ Project1 fetches video game news data from GameSpot's API in real-time, storing 
     - ![What Happens When User Already Exists](/images/User%20Already%20Exists.png?raw=true)
   - After successful login, whether admin or basic, the user will reach the Home Screen, where the user can watch new games, articles, and reviews come in from GameSpot's API
     - ![Home Screen After Successful Login](/images/Successful%20Login,%20Home%20Screen.png?raw=true)
-  - 
+  - From here, if there are any queries written and saved to the Hive database, the user can execute them by entering the "Execute Query" menu
+    - ![Execute Query Menu With Query List](/images/Execute%20Query%20Menu.png?raw=true)
+  - Otherwise, they are free to change their username and password (unless the username already exists)
+    - ![Change Username, and Username Already Exists](/images/Change%20Username.png?raw=true)
+    - ![Change Password, and Incorrect Original Password](/images/Change%20Password.png?raw=true)
+  - The admin menu has a couple new options: Manage Queries and Manage Users  
+    - ![Admin Menu](/images/Admin%20Menu.png?raw=true)
+  - In Manage Queries, an admin can execute queries (same as basic user), as well as rename existing queries, write new queries, and delete stored queries
+    - ![Query Mangement Menu](/images/Query%20Management%20Menu.png?raw=true)
+  - In the User Management Menu, an admin can either delete or promote a basic user to admin status (they cannot demote or delete existing admins)
+    - ![User Management Menu](/images/User%20Management%20Menu.png?raw=true)
+
+## License
+This project uses the following license: The Unlicense
